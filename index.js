@@ -17,13 +17,11 @@ var say = sassport
       return sass.types.String(message.getValue() + '!!!');
     }
   })
-  .exports('imports.scss');
-
-var saypure = sassport.module('pure').functions({
-  'saypure($message)': sassport.wrap(function(message) {
-    return 'Hi, '+message+'!';
-  })
-});
+  .exports('./imports.scss')
+  .variables({
+    '$test-again': 'a normal js string',
+    '$color-primary': 'green'
+  });
 
 var sassOptions = {
   file: './test.scss'

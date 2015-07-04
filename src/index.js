@@ -1,6 +1,7 @@
 
 import sass from 'node-sass';
 import _ from 'lodash';
+import fs from 'fs';
 
 const sassUtils = require('node-sass-utils')(sass);
 
@@ -38,9 +39,13 @@ class Sassport {
     this.modules = modules;
     this.sass = renderer;
 
+    this._default = {
+      contents: []
+    };
+
     let options = {
       functions: {},
-      importer: []
+      importer: [ this._defaultImporter.bind(this) ]
     };
 
     modules.map(module => {
@@ -70,11 +75,13 @@ class Sassport {
     }
 
     for (let path in exportMap) {
-      let exportUrl = `${this.name}`;
+      let exportUrl = `${this.name}/${path}`;
       let exportFile = exportMap[path];
 
-      if (path !== 'default') {
-        exportUrl += `/${path}`;
+      if (path === 'default') {
+        this._default.file = exportFile;
+
+        continue;
       }
 
       let importer = function(url, prev, done) {
@@ -84,6 +91,38 @@ class Sassport {
       }
 
       this.options.importer.push(importer);
+    }
+
+    return this;
+  }
+
+  _defaultImporter(url, prev, done) {
+    if (url === this.name) {
+      let importerData = {};
+
+      if (this._default.file) {
+        if (!this._default.contents.length) {
+          importerData.file = this._default.file;
+        } else {
+          importerData.contents = fs.readFileSync(this._default.file);
+        }
+      }
+
+      if (this._default.contents.length) {
+        importerData.contents += ';' + this._default.contents.join('');
+      }
+
+      console.log(importerData);
+
+      done(importerData);
+    }
+  }
+
+  variables(variableMap) {
+    for (let key in variableMap) {
+      let value = sassUtils.sassString(sassUtils.castToSass(variableMap[key]));
+
+      this._default.contents.push(`${key}: ${value};`)
     }
 
     return this;

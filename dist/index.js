@@ -8,9 +8,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _defineProperty(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -21,6 +19,10 @@ var _nodeSass2 = _interopRequireDefault(_nodeSass);
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
+
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
 
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
@@ -56,7 +58,7 @@ sassport.wrap = function (unwrappedFunc) {
       return sassUtils.castToJs(arg);
     });
 
-    var result = unwrappedFunc.apply(undefined, _toConsumableArray(args));
+    var result = unwrappedFunc.apply(undefined, args);
 
     return returnSass ? result : sassUtils.castToSass(result);
   };
@@ -75,9 +77,13 @@ var Sassport = (function () {
     this.modules = modules;
     this.sass = renderer;
 
+    this._default = {
+      contents: []
+    };
+
     var options = {
       functions: {},
-      importer: []
+      importer: [this._defaultImporter.bind(this)]
     };
 
     modules.map(function (module) {
@@ -113,11 +119,13 @@ var Sassport = (function () {
       }
 
       var _loop = function (path) {
-        var exportUrl = '' + _this.name;
+        var exportUrl = '' + _this.name + '/' + path;
         var exportFile = exportMap[path];
 
-        if (path !== 'default') {
-          exportUrl += '/' + path;
+        if (path === 'default') {
+          _this._default.file = exportFile;
+
+          return 'continue';
         }
 
         var importer = function importer(url, prev, done) {
@@ -130,7 +138,43 @@ var Sassport = (function () {
       };
 
       for (var path in exportMap) {
-        _loop(path);
+        var _ret = _loop(path);
+
+        if (_ret === 'continue') continue;
+      }
+
+      return this;
+    }
+  }, {
+    key: '_defaultImporter',
+    value: function _defaultImporter(url, prev, done) {
+      if (url === this.name) {
+        var importerData = {};
+
+        if (this._default.file) {
+          if (!this._default.contents.length) {
+            importerData.file = this._default.file;
+          } else {
+            importerData.contents = _fs2['default'].readFileSync(this._default.file);
+          }
+        }
+
+        if (this._default.contents.length) {
+          importerData.contents += ';' + this._default.contents.join('');
+        }
+
+        console.log(importerData);
+
+        done(importerData);
+      }
+    }
+  }, {
+    key: 'variables',
+    value: function variables(variableMap) {
+      for (var key in variableMap) {
+        var value = sassUtils.sassString(sassUtils.castToSass(variableMap[key]));
+
+        this._default.contents.push('' + key + ': ' + value + ';');
       }
 
       return this;
