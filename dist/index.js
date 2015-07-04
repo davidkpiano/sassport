@@ -22,20 +22,24 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
-var sassport = function sassport(plugins) {
+var ROOT = 'root';
+
+var sassport = function sassport(modules) {
   var renderer = arguments[1] === undefined ? _nodeSass2['default'] : arguments[1];
 
-  if (!Array.isArray(plugins)) {
-    plugins = [plugins];
+  if (!Array.isArray(modules)) {
+    modules = [modules];
   }
 
-  return new Renderer(plugins, renderer);
+  var sassportInstance = new Sassport(ROOT, modules, renderer);
+
+  return sassportInstance;
 };
 
-sassport.functions = function (funcMap) {
-  var sassportInstance = new Sassport();
+sassport.module = function (name) {
+  var modules = arguments[1] === undefined ? [] : arguments[1];
 
-  return sassportInstance.functions(funcMap);
+  return new Sassport(name, modules);
 };
 
 sassport.wrap = function (unwrappedFunc) {
@@ -56,67 +60,78 @@ sassport.wrap = function (unwrappedFunc) {
   };
 };
 
-sassport.imports = function (importMap) {
-  var sassportInstance = new Sassport();
-
-  return sassportInstance.imports(importMap);
-};
+sassport.utils = sassUtils;
 
 var Sassport = (function () {
-  function Sassport() {
+  function Sassport(name) {
+    var modules = arguments[1] === undefined ? [] : arguments[1];
+    var renderer = arguments[2] === undefined ? _nodeSass2['default'] : arguments[2];
+
     _classCallCheck(this, Sassport);
 
-    this.options = {
-      functions: {}
+    this.name = name;
+    this.modules = modules;
+    this.sass = renderer;
+
+    var options = {
+      functions: {},
+      importer: []
     };
+
+    modules.map(function (module) {
+      _lodash2['default'].merge(options, module.options);
+    });
+
+    this.options = options;
   }
 
   _createClass(Sassport, [{
+    key: 'render',
+    value: function render(options, emitter) {
+      _lodash2['default'].extend(this.options, options);
+
+      return this.sass.render(this.options, emitter);
+    }
+  }, {
     key: 'functions',
-    value: function functions(_functions) {
-      _lodash2['default'].extend(this.options.functions, _functions);
+    value: function functions(functionMap) {
+      _lodash2['default'].extend(this.options.functions, functionMap);
+
+      return this;
+    }
+  }, {
+    key: 'exports',
+    value: function exports(exportMap) {
+      var _this = this;
+
+      var _loop = function (path) {
+        var exportUrl = '' + _this.name;
+        var exportFile = exportMap[path];
+
+        if (path !== 'default') {
+          exportUrl += '/' + path;
+        }
+
+        var importer = function importer(url, prev, done) {
+          console.log(url, prev);
+
+          if (url == exportUrl) {
+            done({ file: exportFile });
+          }
+        };
+
+        _this.options.importer.push(importer);
+      };
+
+      for (var path in exportMap) {
+        _loop(path);
+      }
 
       return this;
     }
   }]);
 
   return Sassport;
-})();
-
-var Renderer = (function () {
-  function Renderer(plugins, renderer) {
-    if (plugins === undefined) plugins = [];
-
-    _classCallCheck(this, Renderer);
-
-    this.sass = renderer;
-
-    this.options = {
-      functions: {}
-    };
-
-    this._includeSassports(plugins);
-  }
-
-  _createClass(Renderer, [{
-    key: 'render',
-    value: function render(options, emitter) {
-      _lodash2['default'].extend(options, this.options);
-
-      return this.sass.render(options, emitter);
-    }
-  }, {
-    key: '_includeSassports',
-    value: function _includeSassports(plugins) {
-      var _this = this;
-
-      plugins.forEach(function (plugin) {
-        _lodash2['default'].merge(_this.options, { functions: plugin.options.functions });
-      }, this);
-    }
-  }]);
-
-  return Renderer;
 })();
 
 exports['default'] = sassport;

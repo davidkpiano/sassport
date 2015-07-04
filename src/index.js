@@ -4,18 +4,20 @@ import _ from 'lodash';
 
 const sassUtils = require('node-sass-utils')(sass);
 
-let sassport = function(plugins, renderer = sass) {
-  if (!Array.isArray(plugins)) {
-    plugins = [plugins];
+const ROOT = 'root';
+
+let sassport = function(modules, renderer = sass) {
+  if (!Array.isArray(modules)) {
+    modules = [modules];
   }
 
-  return new Renderer(plugins, renderer);
+  let sassportInstance = new Sassport(ROOT, modules, renderer);
+
+  return sassportInstance;
 };
 
-sassport.functions = function(funcMap) {
-  let sassportInstance = new Sassport();
-
-  return sassportInstance.functions(funcMap);
+sassport.module = function(name, modules = []) {
+  return new Sassport(name, modules);
 };
 
 sassport.wrap = function(unwrappedFunc, returnSass = false) {
@@ -28,49 +30,61 @@ sassport.wrap = function(unwrappedFunc, returnSass = false) {
   }
 };
 
-sassport.imports = function(importMap) {
-  let sassportInstance = new Sassport();
-
-  return sassportInstance.imports(importMap);
-}
+sassport.utils = sassUtils;
 
 class Sassport {
-  constructor() {
-    this.options = {
-      functions: {}
+  constructor(name, modules = [], renderer = sass) {
+    this.name = name;
+    this.modules = modules;
+    this.sass = renderer;
+
+    let options = {
+      functions: {},
+      importer: []
     };
+
+    modules.map(module => {
+      _.merge(options, module.options);
+    });
+
+    this.options = options;
   }
 
-  functions(functions) {
-    _.extend(this.options.functions, functions);
+  render(options, emitter) {
+    _.extend(this.options, options);
+
+    return this.sass.render(this.options, emitter);
+  }
+
+  functions(functionMap) {
+    _.extend(this.options.functions, functionMap);
+
+    return this;
+  }
+
+  exports(exportMap) {
+    for (let path in exportMap) {
+      let exportUrl = `${this.name}`;
+      let exportFile = exportMap[path];
+
+      if (path !== 'default') {
+        exportUrl += `/${path}`;
+      }
+
+      let importer = function(url, prev, done) {
+        console.log(url, prev);
+
+        if (url == exportUrl) {
+          done({file: exportFile});
+        }
+      }
+
+      this.options.importer.push(importer);
+    }
 
     return this;
   }
 }
 
-class Renderer {
-  constructor(plugins = [], renderer) {
-    this.sass = renderer;
-
-    this.options = {
-      functions: {}
-    };
-
-    this._includeSassports(plugins);
-  }
-
-  render(options, emitter) {
-    _.extend(options, this.options);
-
-    return this.sass.render(options, emitter);
-  }
-
-  _includeSassports(plugins) {
-
-    plugins.forEach(plugin => {
-      _.merge(this.options, { functions: plugin.options.functions });
-    }, this);
-  }
-}
 
 export default sassport;

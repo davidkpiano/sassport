@@ -10,13 +10,18 @@ var foo = sassport.wrap(function(message) {
   return 'Hi, '+message+'!';
 });
 
-var say = sassport.functions({
-  'say($message)': function(message) {
-    return sass.types.String(message.getValue() + '!!!');
-  }
-});
+var say = sassport
+  .module('say')
+  .functions({
+    'say($message)': function(message) {
+      return sass.types.String(message.getValue() + '!!!');
+    }
+  })
+  .exports({
+    default: 'imports.scss'
+  });
 
-var saypure = sassport.functions({
+var saypure = sassport.module('pure').functions({
   'saypure($message)': sassport.wrap(function(message) {
     return 'Hi, '+message+'!';
   })
@@ -27,9 +32,7 @@ var sassOptions = {
 };
 
 sassport([
-  saypure,
-  say,
-  camelCase
+  say
 ]).render(sassOptions, function(err, result) {
   console.log(err);
   console.log(result.css.toString());
