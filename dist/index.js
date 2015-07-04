@@ -10,6 +10,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _nodeSass = require('node-sass');
@@ -104,6 +106,12 @@ var Sassport = (function () {
     value: function exports(exportMap) {
       var _this = this;
 
+      if (arguments.length == 1) {
+        exportMap = { 'default': arguments[0] };
+      } else if (arguments.length == 2) {
+        exportMap = _defineProperty({}, arguments[0], arguments[1]);
+      }
+
       var _loop = function (path) {
         var exportUrl = '' + _this.name;
         var exportFile = exportMap[path];
@@ -113,8 +121,6 @@ var Sassport = (function () {
         }
 
         var importer = function importer(url, prev, done) {
-          console.log(url, prev);
-
           if (url == exportUrl) {
             done({ file: exportFile });
           }

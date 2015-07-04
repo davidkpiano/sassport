@@ -17,9 +17,7 @@ var say = sassport
       return sass.types.String(message.getValue() + '!!!');
     }
   })
-  .exports({
-    default: 'imports.scss'
-  });
+  .exports('imports.scss');
 
 var saypure = sassport.module('pure').functions({
   'saypure($message)': sassport.wrap(function(message) {

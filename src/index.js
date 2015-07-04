@@ -63,6 +63,12 @@ class Sassport {
   }
 
   exports(exportMap) {
+    if (arguments.length == 1) {
+      exportMap = { default: arguments[0] };
+    } else if (arguments.length == 2) {
+      exportMap = { [arguments[0]]: arguments[1] };
+    }
+
     for (let path in exportMap) {
       let exportUrl = `${this.name}`;
       let exportFile = exportMap[path];
@@ -72,8 +78,6 @@ class Sassport {
       }
 
       let importer = function(url, prev, done) {
-        console.log(url, prev);
-
         if (url == exportUrl) {
           done({file: exportFile});
         }
