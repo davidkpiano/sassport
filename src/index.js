@@ -2,12 +2,14 @@
 import sass from 'node-sass';
 import _ from 'lodash';
 
-let sassport = function(imports) {
-  if (!Array.isArray(imports)) {
-    imports = [imports];
+const sassUtils = require('node-sass-utils')(sass);
+
+let sassport = function(plugins) {
+  if (!Array.isArray(plugins)) {
+    plugins = [plugins];
   }
 
-  return new Renderer(imports);
+  return new Renderer(plugins);
 };
 
 sassport.functions = function(funcMap) {
@@ -16,131 +18,52 @@ sassport.functions = function(funcMap) {
   return sassportInstance.functions(funcMap);
 };
 
-sassport.plain = function(pureFunc) {
+sassport.plain = function(plainFunc, returnPlain = false) {
   return function(...args) {
-    for (let i = 0; i < args.length; i++) {
-      args[i] = convertSassValue(args[i]);
-    }
+    args = args.map(arg => sassUtils.castToJs(arg));
 
-    let result = pureFunc(...args);
+    let result = plainFunc(...args);
 
-    return inferPlainValue(result);
+    return returnPlain ? result : sassUtils.castToSass(result);
   }
-}
-
-let inferPlainValue = function(value) {
-  if (value === null || value === undefined) {
-    return sass.types.Null.NULL;
-  }
-
-  if (_.isString(value)) {
-    return sass.types.String(value);
-  }
-
-  if (_.isNumber(value)) {
-    return sass.types.Number(value);
-  }
-
-  if (_.isBoolean(value)) {
-    return value ? sass.types.Boolean.TRUE : sass.types.boolean.FALSE;
-  }
-
-  if (_.isArray(value)) {
-    let length = value.length;
-    let result = sass.types.List(length);
-
-    for (let i = 0; i < length; i++) {
-      result = result.setValue(i, inferPlainValue(value[i]));
-    }
-
-    return result;
-  }
-
-  if (_.isObject(value)) {
-    if (value instanceof Map) {
-      let result = sass.types.Map(value.size());
-
-      let keys = value.keys();
-
-      for (let i = 0; i < keys.length; i++) {
-        let key = inferPlainValue(key);
-        let val = value.getValue(key);
-
-        result.setValue(key, val);
-      }
-
-      return result;
-    }
-  }
-}
-
-let convertSassValue = function(value) {
-  if (!value.getR && !value.getValue) {
-    return null;
-  }
-
-  if (value.getKey) {
-    let length = value.getLength();
-    let result = new Map();
-
-    for (let i = 0; i < length; i++) {
-      let key = value.getKey(i);
-      let val = value.getValue(i);
-
-      result.set(convertSassValue(key), convertSassValue(val));
-    }
-
-    return result;
-  }
-
-  if (value.getLength) {
-    let length = value.getLength();
-    let result = [];
-
-    for (let i = 0; i < length; i++) {
-      result.push(value.getValue(i));
-    }
-
-    return result.map(item => convertSassValue(item));
-  }
-
-  if (value.getR) {
-    return {
-      r: value.getR(),
-      g: value.getG(),
-      b: value.getB(),
-      a: value.getA()
-    };
-  }
-
-  return value.getValue();
 }
 
 class Sassport {
   constructor() {
-    this.options = {};
+    this.options = {
+      functions: {}
+    };
   }
 
-  functions(funcMap) {
-    _.extend(this.options, funcMap);
+  functions(functions) {
+    _.extend(this.options.functions, functions);
 
-    return this.options;
+    console.log(this);
+
+    return this;
   }
 }
 
 class Renderer {
-  constructor(sassports = []) {
-    this.options = {};
-    this.functions = {};
+  constructor(plugins = []) {
+    this.sass = sass;
 
-    this._includeSassports(sassports);
+    this.options = {
+      functions: {}
+    };
+
+    this._includeSassports(plugins);
   }
 
-  _includeSassports(sassports) {
-    sassports.forEach(sassport => {
-      let {functions} = sassport;
+  render(options, emitter) {
+    _.extend(options, this.options);
 
-      _.extend(this, functions);
+    return this.sass.render(options, emitter);
+  }
+
+  _includeSassports(plugins) {
+    plugins.forEach(plugin => {
+      _.merge(this.options, { functions: plugin.options.functions });
     }, this);
   }
 }

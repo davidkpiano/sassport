@@ -1,15 +1,27 @@
 var sass = require('node-sass');
 var sassport = require('./dist/index.js');
 
-var sassOptions = {
-  file: './test.scss',
-  functions: {
-    'saypure($message)': sassport.plain(function(message) {
-      return 'Hi, '+message+'!';
-    })
+var foo = sassport.plain(function(message) {
+  return 'Hi, '+message+'!';
+});
+
+var say = sassport.functions({
+  'say($message)': function(message) {
+    return sass.types.String(message.getValue() + '!!!');
   }
+});
+
+var saypure = sassport.functions({
+  'saypure($message)': sassport.plain(function(message) {
+    return 'Hi, '+message+'!';
+  })
+});
+
+var sassOptions = {
+  file: './test.scss'
 };
 
-sass.render(sassOptions, function(err, result) {
+sassport([ saypure, say ]).render(sassOptions, function(err, result) {
+  console.log(err);
   console.log(result.css.toString());
 });
