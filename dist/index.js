@@ -10,6 +10,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _nodeSass = require('node-sass');
@@ -23,11 +25,13 @@ var _lodash2 = _interopRequireDefault(_lodash);
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
 var sassport = function sassport(plugins) {
+  var renderer = arguments[1] === undefined ? _nodeSass2['default'] : arguments[1];
+
   if (!Array.isArray(plugins)) {
     plugins = [plugins];
   }
 
-  return new Renderer(plugins);
+  return new Renderer(plugins, renderer);
 };
 
 sassport.functions = function (funcMap) {
@@ -54,6 +58,12 @@ sassport.plain = function (plainFunc) {
   };
 };
 
+sassport.imports = function (importMap) {
+  var sassportInstance = new Sassport();
+
+  return sassportInstance.imports(importMap);
+};
+
 var Sassport = (function () {
   function Sassport() {
     _classCallCheck(this, Sassport);
@@ -68,8 +78,6 @@ var Sassport = (function () {
     value: function functions(_functions) {
       _lodash2['default'].extend(this.options.functions, _functions);
 
-      console.log(this);
-
       return this;
     }
   }]);
@@ -78,12 +86,12 @@ var Sassport = (function () {
 })();
 
 var Renderer = (function () {
-  function Renderer() {
-    var plugins = arguments[0] === undefined ? [] : arguments[0];
+  function Renderer(plugins, renderer) {
+    if (plugins === undefined) plugins = [];
 
     _classCallCheck(this, Renderer);
 
-    this.sass = _nodeSass2['default'];
+    this.sass = renderer;
 
     this.options = {
       functions: {}
@@ -105,6 +113,14 @@ var Renderer = (function () {
       var _this = this;
 
       plugins.forEach(function (plugin) {
+        if (plugin instanceof Sassport === false) {
+          if (_lodash2['default'].isFunction(plugin)) {
+            console.log(plugin.name);
+
+            plugin = sassport.functions(_defineProperty({}, plugin.name, sassport.plain(plugin)));
+          }
+        }
+
         _lodash2['default'].merge(_this.options, { functions: plugin.options.functions });
       }, this);
     }

@@ -1,5 +1,10 @@
 var sass = require('node-sass');
 var sassport = require('./dist/index.js');
+var _ = require('lodash');
+
+function camelCase(msg) {
+  return _.camelCase(msg);
+}
 
 var foo = sassport.plain(function(message) {
   return 'Hi, '+message+'!';
@@ -21,7 +26,11 @@ var sassOptions = {
   file: './test.scss'
 };
 
-sassport([ saypure, say ]).render(sassOptions, function(err, result) {
+sassport([
+  saypure,
+  say,
+  camelCase
+]).render(sassOptions, function(err, result) {
   console.log(err);
   console.log(result.css.toString());
 });

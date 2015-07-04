@@ -4,12 +4,12 @@ import _ from 'lodash';
 
 const sassUtils = require('node-sass-utils')(sass);
 
-let sassport = function(plugins) {
+let sassport = function(plugins, renderer = sass) {
   if (!Array.isArray(plugins)) {
     plugins = [plugins];
   }
 
-  return new Renderer(plugins);
+  return new Renderer(plugins, renderer);
 };
 
 sassport.functions = function(funcMap) {
@@ -26,6 +26,12 @@ sassport.plain = function(plainFunc, returnPlain = false) {
 
     return returnPlain ? result : sassUtils.castToSass(result);
   }
+};
+
+sassport.imports = function(importMap) {
+  let sassportInstance = new Sassport();
+
+  return sassportInstance.imports(importMap);
 }
 
 class Sassport {
@@ -38,15 +44,13 @@ class Sassport {
   functions(functions) {
     _.extend(this.options.functions, functions);
 
-    console.log(this);
-
     return this;
   }
 }
 
 class Renderer {
-  constructor(plugins = []) {
-    this.sass = sass;
+  constructor(plugins = [], renderer) {
+    this.sass = renderer;
 
     this.options = {
       functions: {}
@@ -62,7 +66,18 @@ class Renderer {
   }
 
   _includeSassports(plugins) {
+
     plugins.forEach(plugin => {
+      if (plugin instanceof Sassport === false) {
+        if (_.isFunction(plugin)) {
+          console.log(plugin.name);
+
+          plugin = sassport.functions({
+            [plugin.name]: sassport.plain(plugin)
+          });
+        }
+      }
+
       _.merge(this.options, { functions: plugin.options.functions });
     }, this);
   }
