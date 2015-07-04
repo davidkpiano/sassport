@@ -6,7 +6,7 @@ function camelCase(msg) {
   return _.camelCase(msg);
 }
 
-var foo = sassport.plain(function(message) {
+var foo = sassport.wrap(function(message) {
   return 'Hi, '+message+'!';
 });
 
@@ -17,7 +17,7 @@ var say = sassport.functions({
 });
 
 var saypure = sassport.functions({
-  'saypure($message)': sassport.plain(function(message) {
+  'saypure($message)': sassport.wrap(function(message) {
     return 'Hi, '+message+'!';
   })
 });

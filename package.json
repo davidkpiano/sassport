@@ -1,7 +1,7 @@
 {
   "name": "sassport",
   "version": "0.0.2",
-  "description": "",
+  "description": "JavaScript modules for Sass.",
   "main": "dist/index.js",
   "scripts": {
     "start": "babel -w ./src -d ./dist"

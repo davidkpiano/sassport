@@ -18,13 +18,13 @@ sassport.functions = function(funcMap) {
   return sassportInstance.functions(funcMap);
 };
 
-sassport.plain = function(plainFunc, returnPlain = false) {
+sassport.wrap = function(unwrappedFunc, returnSass = false) {
   return function(...args) {
     args = args.map(arg => sassUtils.castToJs(arg));
 
-    let result = plainFunc(...args);
+    let result = unwrappedFunc(...args);
 
-    return returnPlain ? result : sassUtils.castToSass(result);
+    return returnSass ? result : sassUtils.castToSass(result);
   }
 };
 
@@ -68,16 +68,6 @@ class Renderer {
   _includeSassports(plugins) {
 
     plugins.forEach(plugin => {
-      if (plugin instanceof Sassport === false) {
-        if (_.isFunction(plugin)) {
-          console.log(plugin.name);
-
-          plugin = sassport.functions({
-            [plugin.name]: sassport.plain(plugin)
-          });
-        }
-      }
-
       _.merge(this.options, { functions: plugin.options.functions });
     }, this);
   }

@@ -10,8 +10,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _nodeSass = require('node-sass');
@@ -40,8 +38,8 @@ sassport.functions = function (funcMap) {
   return sassportInstance.functions(funcMap);
 };
 
-sassport.plain = function (plainFunc) {
-  var returnPlain = arguments[1] === undefined ? false : arguments[1];
+sassport.wrap = function (unwrappedFunc) {
+  var returnSass = arguments[1] === undefined ? false : arguments[1];
 
   return function () {
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
@@ -52,9 +50,9 @@ sassport.plain = function (plainFunc) {
       return sassUtils.castToJs(arg);
     });
 
-    var result = plainFunc.apply(undefined, _toConsumableArray(args));
+    var result = unwrappedFunc.apply(undefined, _toConsumableArray(args));
 
-    return returnPlain ? result : sassUtils.castToSass(result);
+    return returnSass ? result : sassUtils.castToSass(result);
   };
 };
 
@@ -113,14 +111,6 @@ var Renderer = (function () {
       var _this = this;
 
       plugins.forEach(function (plugin) {
-        if (plugin instanceof Sassport === false) {
-          if (_lodash2['default'].isFunction(plugin)) {
-            console.log(plugin.name);
-
-            plugin = sassport.functions(_defineProperty({}, plugin.name, sassport.plain(plugin)));
-          }
-        }
-
         _lodash2['default'].merge(_this.options, { functions: plugin.options.functions });
       }, this);
     }
