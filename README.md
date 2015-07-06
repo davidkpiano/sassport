@@ -28,11 +28,25 @@ Sassport makes it easy to include JavaScript functions, variables, and assets su
 var sassport = require('sassport');
 var sass = require('sass');
 
-module.exports = sassport
+module.exports = sassport.module('say')
   .functions({
     'say-hello($message)': function(message) {
       return sass.types.String('#{$hello-message}, ' + message.getValue() + '!!');
-    }
+    },
+    // Wrap plain JS functions!
+    'say-goodbye($message)': sassport.wrap(function(message) {
+      return 'Goodbye, ' + message + '!!';
+    })
+  })
+  .exports({
+    // @import 'say';
+    default: __dirname + '/stylesheets/main.scss',
+    
+    // @import 'say/someMixins';
+    'someMixins': __dirname + '/stylesheets/mixins',
+    
+    // @import 'say/otherClasses';
+    'otherClasses': __dirname + '/stylesheets/classes'
   })
   .variables({
     // JS values are automatically cast to Sass values
@@ -43,17 +57,3 @@ module.exports = sassport
     }
   });
 ```
-
-```js
-// Wrapping normal (non-Sassport) JavaScript functions
-var sassport = require('sassport');
-
-function sayHello(message) {
-  return 'Hello, ' + message + '!!';
-}
-
-module.exports = sassport.functions({
-  'say-hello($message)': sassport.wrap(sayHello)
-});
-```
-    
