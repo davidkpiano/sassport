@@ -57,3 +57,20 @@ module.exports = sassport.module('say')
     }
   });
 ```
+
+(Coming soon) You can also define custom mixins:
+
+```js
+sassport.module('hello-world')
+  .mixins({
+    'hello($message, $color)': function(message, color) {
+      return `
+        &:before {
+          display: block;
+          content: 'Hello, ${message}!';
+          color: ${color};
+        }
+      `;
+    }
+  });
+```
