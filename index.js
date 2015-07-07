@@ -23,6 +23,10 @@ var say = sassport
     '$color-primary': 'green'
   });
 
+say.functions({
+  'foo($msg)': foo
+});
+
 var sassOptions = {
   file: './test.scss'
 };

@@ -61,6 +61,12 @@ class Sassport {
     return this.sass.render(this.options, emitter);
   }
 
+  renderSync(options, emitter) {
+    _.extend(this.options, options);
+
+    return this.sass.render(this.options, emitter);
+  }
+
   functions(functionMap) {
     _.extend(this.options.functions, functionMap);
 

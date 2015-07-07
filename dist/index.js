@@ -101,6 +101,13 @@ var Sassport = (function () {
       return this.sass.render(this.options, emitter);
     }
   }, {
+    key: 'renderSync',
+    value: function renderSync(options, emitter) {
+      _lodash2['default'].extend(this.options, options);
+
+      return this.sass.render(this.options, emitter);
+    }
+  }, {
     key: 'functions',
     value: function functions(functionMap) {
       _lodash2['default'].extend(this.options.functions, functionMap);
