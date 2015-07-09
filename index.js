@@ -21,6 +21,11 @@ var say = sassport
   .variables({
     '$test-again': 'a normal js string',
     '$color-primary': 'green'
+  })
+  .mixins({
+    'foo()': function() {
+      return 'color: brown; background: transparent;';
+    }
   });
 
 say.functions({

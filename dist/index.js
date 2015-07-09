@@ -24,6 +24,10 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
+var _templatesMixinJs = require('./templates/mixin.js');
+
+var _templatesMixinJs2 = _interopRequireDefault(_templatesMixinJs);
+
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
 var ROOT = 'root';
@@ -78,11 +82,21 @@ var Sassport = (function () {
     this.sass = renderer;
 
     this._default = {
-      contents: []
+      contents: ['@mixin __sassport-mixin($id, $args...){_:__sassport-render-mixin($id, $args...);@content;}']
     };
 
+    this._mixins = {};
+
     var options = {
-      functions: {},
+      functions: {
+        '__sassport-render-mixin($id, $args...)': (function (id, args) {
+          id = id.getValue();
+
+          var mixin = this._mixins[id];
+
+          return sassUtils.castToSass('_;' + mixin());
+        }).bind(this)
+      },
       importer: [this._defaultImporter.bind(this)]
     };
 
@@ -167,10 +181,8 @@ var Sassport = (function () {
         }
 
         if (this._default.contents.length) {
-          importerData.contents += ';' + this._default.contents.join('');
+          importerData.contents += this._default.contents.join('');
         }
-
-        console.log(importerData);
 
         done(importerData);
       }
@@ -179,9 +191,24 @@ var Sassport = (function () {
     key: 'variables',
     value: function variables(variableMap) {
       for (var key in variableMap) {
-        var value = sassUtils.sassString(sassUtils.castToSass(variableMap[key]));
+        var value = variableMap[key];
+        var sassValue = sassUtils.sassString(sassUtils.castToSass(value));
 
-        this._default.contents.push('' + key + ': ' + value + ';');
+        this._default.contents.push('' + key + ': ' + sassValue + ';');
+      }
+
+      return this;
+    }
+  }, {
+    key: 'mixins',
+    value: function mixins(mixinMap) {
+      for (var signature in mixinMap) {
+        var mixin = mixinMap[signature]; // function that returns a string
+        var id = _lodash2['default'].uniqueId() + '';
+
+        this._mixins[id] = mixin;
+
+        this._default.contents.push(_templatesMixinJs2['default'](signature, id));
       }
 
       return this;

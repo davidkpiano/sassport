@@ -3,6 +3,8 @@ import sass from 'node-sass';
 import _ from 'lodash';
 import fs from 'fs';
 
+import mixinTemplate from './templates/mixin.js';
+
 const sassUtils = require('node-sass-utils')(sass);
 
 const ROOT = 'root';
@@ -40,11 +42,23 @@ class Sassport {
     this.sass = renderer;
 
     this._default = {
-      contents: []
+      contents: [
+        '@mixin __sassport-mixin($id, $args...){_:__sassport-render-mixin($id, $args...);@content;}'
+      ]
     };
 
+    this._mixins = {};
+
     let options = {
-      functions: {},
+      functions: {
+        '__sassport-render-mixin($id, $args...)': function(id, args) {
+          id = id.getValue();
+
+          let mixin = this._mixins[id];
+
+          return sassUtils.castToSass('_;'+mixin());
+        }.bind(this)
+      },
       importer: [ this._defaultImporter.bind(this) ]
     };
 
@@ -115,10 +129,8 @@ class Sassport {
       }
 
       if (this._default.contents.length) {
-        importerData.contents += ';' + this._default.contents.join('');
+        importerData.contents += this._default.contents.join('');
       }
-
-      console.log(importerData);
 
       done(importerData);
     }
@@ -126,9 +138,23 @@ class Sassport {
 
   variables(variableMap) {
     for (let key in variableMap) {
-      let value = sassUtils.sassString(sassUtils.castToSass(variableMap[key]));
+      let value = variableMap[key];
+      let sassValue = sassUtils.sassString(sassUtils.castToSass(value));
 
-      this._default.contents.push(`${key}: ${value};`)
+      this._default.contents.push(`${key}: ${sassValue};`)
+    }
+
+    return this;
+  }
+
+  mixins(mixinMap) {
+    for (let signature in mixinMap) {
+      let mixin = mixinMap[signature]; // function that returns a string
+      let id = _.uniqueId()+'';
+
+      this._mixins[id] = mixin;
+
+      this._default.contents.push(mixinTemplate(signature, id));
     }
 
     return this;
