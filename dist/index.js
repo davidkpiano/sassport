@@ -142,6 +142,17 @@ var Sassport = (function () {
       var _loop = function (path) {
         var exportUrl = '' + _this.name + '/' + path;
         var exportFile = exportMap[path];
+        var fileExists = true;
+
+        _fs2['default'].statSync(exportFile, function (err) {
+          if (err && err.code === 'ENOENT') {
+            console.log('File at path "' + err.path + '" does not exist. Skipping import.');
+
+            fileExists = false;
+          }
+        });
+
+        if (!fileExists) return 'continue';
 
         if (path === 'default') {
           _this._default.file = exportFile;

@@ -17,7 +17,7 @@ var say = sassport
       return sass.types.String(message.getValue() + '!!!');
     }
   })
-  .exports('./imports.scss')
+  .exports('./importes.scss')
   .variables({
     '$test-again': 'a normal js string',
     '$color-primary': 'green'

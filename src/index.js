@@ -97,6 +97,17 @@ class Sassport {
     for (let path in exportMap) {
       let exportUrl = `${this.name}/${path}`;
       let exportFile = exportMap[path];
+      let fileExists = true;
+
+      fs.statSync(exportFile, (err) => {
+        if (err && err.code === 'ENOENT') {
+          console.log(`File at path "${err.path}" does not exist. Skipping import.`);
+
+          fileExists = false;
+        }
+      });
+
+      if (!fileExists) continue;
 
       if (path === 'default') {
         this._default.file = exportFile;
