@@ -64,6 +64,23 @@ sassport.wrap = function (unwrappedFunc) {
   };
 };
 
+sassport.asset = function (file, transformer) {
+  var assetMeta = {
+    url: file
+  };
+
+  if (transformer) {
+    _lodash2['default'].merge(assetMeta, transformer.call(null, file));
+  }
+
+  // Quote strings
+  assetMeta = _lodash2['default'].mapValues(assetMeta, function (value) {
+    return _lodash2['default'].isString(value) ? '"' + value + '"' : value;
+  });
+
+  return assetMeta;
+};
+
 sassport.utils = sassUtils;
 
 var Sassport = (function () {
@@ -201,7 +218,6 @@ var Sassport = (function () {
       var _this2 = this;
 
       _rulesets.map((function (ruleset) {
-        console.log(ruleset);
         var renderedRuleset = _this2.sass.renderSync({ data: ruleset }).css.toString();
 
         _this2._default.contents.push(renderedRuleset);
@@ -209,6 +225,9 @@ var Sassport = (function () {
 
       return this;
     }
+  }, {
+    key: 'assets',
+    value: function assets() {}
   }]);
 
   return Sassport;

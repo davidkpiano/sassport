@@ -31,6 +31,23 @@ sassport.wrap = function(unwrappedFunc, returnSass = false) {
   }
 };
 
+sassport.asset = function(file, transformer) {
+  let assetMeta = {
+    url: file
+  };
+
+  if (transformer) {
+    _.merge(assetMeta, transformer.call(null, file));
+  }
+
+  // Quote strings
+  assetMeta = _.mapValues(assetMeta, (value) => {
+    return _.isString(value) ? `"${value}"` : value;
+  });
+
+  return assetMeta;
+};
+
 sassport.utils = sassUtils;
 
 class Sassport {
@@ -100,7 +117,7 @@ class Sassport {
 
       let importer = function(url, prev, done) {
         if (url == exportUrl) {
-          done({file: exportFile});
+          done({ file: exportFile });
         }
       }
 
@@ -144,13 +161,16 @@ class Sassport {
 
   rulesets(rulesets) {
     rulesets.map((ruleset) => {
-      console.log(ruleset);
       let renderedRuleset = this.sass.renderSync({ data: ruleset }).css.toString();
 
       this._default.contents.push(renderedRuleset);
     }.bind(this));
 
     return this;
+  }
+
+  assets() {
+
   }
 }
 

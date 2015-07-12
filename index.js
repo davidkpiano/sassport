@@ -2,6 +2,8 @@ var sass = require('node-sass');
 var sassport = require('./dist/index.js');
 var _ = require('lodash');
 
+var imageSize = require('image-size');
+
 function camelCase(msg) {
   return _.camelCase(msg);
 }
@@ -20,7 +22,14 @@ var say = sassport
   .exports('./imports.scss')
   .variables({
     '$test-again': 'a normal js string',
-    '$color-primary': 'green'
+    '$color-primary': 'green',
+    '$map': {
+      foo: 'bar',
+      baz: {
+        quid: 'nunk'
+      }
+    },
+    '$test-image': sassport.asset('./testimage.png', imageSize)
   })
   .rulesets([
     '.baz { color: black; &.bar { color: green; }}'
