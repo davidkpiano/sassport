@@ -7,20 +7,18 @@ import mixinTemplate from './templates/mixin.js';
 
 const sassUtils = require('node-sass-utils')(sass);
 
-const ROOT = 'root';
-
 let sassport = function(modules, renderer = sass) {
   if (!Array.isArray(modules)) {
     modules = [modules];
   }
 
-  let sassportInstance = new Sassport(ROOT, modules, renderer);
+  let sassportInstance = new Sassport(null, modules, renderer);
 
   return sassportInstance;
 };
 
-sassport.module = function(name, modules = []) {
-  return new Sassport(name, modules);
+sassport.module = function(name) {
+  return new Sassport(name);
 };
 
 sassport.wrap = function(unwrappedFunc, returnSass = false) {
@@ -42,23 +40,13 @@ class Sassport {
     this.sass = renderer;
 
     this._default = {
-      contents: [
-        '@mixin __sassport-mixin($id, $args...){_:__sassport-render-mixin($id, $args...);@content;}'
-      ]
+      contents: []
     };
 
     this._mixins = {};
 
     let options = {
-      functions: {
-        '__sassport-render-mixin($id, $args...)': function(id, args) {
-          id = id.getValue();
-
-          let mixin = this._mixins[id];
-
-          return sassUtils.castToSass('_;'+mixin());
-        }.bind(this)
-      },
+      functions: {},
       importer: [ this._defaultImporter.bind(this) ]
     };
 
@@ -67,6 +55,12 @@ class Sassport {
     });
 
     this.options = options;
+  }
+
+  module(name) {
+    this.name = name;
+
+    return this;
   }
 
   render(options, emitter) {
@@ -97,17 +91,6 @@ class Sassport {
     for (let path in exportMap) {
       let exportUrl = `${this.name}/${path}`;
       let exportFile = exportMap[path];
-      let fileExists = true;
-
-      fs.statSync(exportFile, (err) => {
-        if (err && err.code === 'ENOENT') {
-          console.log(`File at path "${err.path}" does not exist. Skipping import.`);
-
-          fileExists = false;
-        }
-      });
-
-      if (!fileExists) continue;
 
       if (path === 'default') {
         this._default.file = exportFile;
@@ -140,6 +123,7 @@ class Sassport {
       }
 
       if (this._default.contents.length) {
+        console.log(this._default.contents);
         importerData.contents += this._default.contents.join('');
       }
 
@@ -158,15 +142,13 @@ class Sassport {
     return this;
   }
 
-  mixins(mixinMap) {
-    for (let signature in mixinMap) {
-      let mixin = mixinMap[signature]; // function that returns a string
-      let id = _.uniqueId()+'';
+  rulesets(rulesets) {
+    rulesets.map((ruleset) => {
+      console.log(ruleset);
+      let renderedRuleset = this.sass.renderSync({ data: ruleset }).css.toString();
 
-      this._mixins[id] = mixin;
-
-      this._default.contents.push(mixinTemplate(signature, id));
-    }
+      this._default.contents.push(renderedRuleset);
+    }.bind(this));
 
     return this;
   }

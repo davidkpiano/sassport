@@ -13,17 +13,3 @@ $blahblah: 'blah';
   something-else: $test-again;
   color: $color-primary;
 }
-
-
-
-
-//////
-.bar {
-  @include foo();
-}
-
-.baz {
-  @include foo() {
-    border: 1px solid black;
-  }
-}

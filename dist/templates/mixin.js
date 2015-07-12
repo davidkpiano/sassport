@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports["default"] = function (signature, id) {
-  return "\n    @mixin " + signature + " {\n      @include __sassport-mixin(" + id + ") {\n        @content;\n      }\n    }\n  ";
+  return "\n    @mixin " + signature + " {\n      @include __sassport-mixin(" + id + ", &) {\n        @content;\n      }\n    }\n  ";
 };
 
 module.exports = exports["default"];

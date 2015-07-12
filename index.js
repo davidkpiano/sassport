@@ -17,16 +17,14 @@ var say = sassport
       return sass.types.String(message.getValue() + '!!!');
     }
   })
-  .exports('./importes.scss')
+  .exports('./imports.scss')
   .variables({
     '$test-again': 'a normal js string',
     '$color-primary': 'green'
   })
-  .mixins({
-    'foo()': function() {
-      return 'color: brown; background: transparent;';
-    }
-  });
+  .rulesets([
+    '.baz { color: black; &.bar { color: green; }}'
+  ]);
 
 say.functions({
   'foo($msg)': foo
