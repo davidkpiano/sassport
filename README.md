@@ -19,20 +19,43 @@ var sassOptions = {
 
 sassport([ sassportMath, sassportTypography ])
   .render(sassOptions, function(err, result) { /* ... */ });
-  
-// With asset variables
+```
+
+## Assets
+With Sassport, you can include any type of asset (such as images, JSON data, etc.) for use in your Sass project. Each asset is transformed into a Sass map with useful meta data about the asset. You can also provide custom asset functions/transformers. There's two ways to include an asset:
+
+* As a Sass `$variable`, with `sassport.asset(file, url, transformer)`
+* As a Sassport asset, available in Sass via `sassport-asset($module, $asset);`
+
+```js
+// As as Sass $variable
 sassport([ ... ])
   .variables({
-    // Meta data map of image (autodetected)
-    '$logo-image': sassport.asset('./path/to/logo.png'), 
-    // List of meta data maps of images
-    
-    '$images': sassport.asset('./path/to/images/**/*.png'), 
-    
-    // Specify custom transformer plugin
-    '$some-data': sassport.asset('./path/to/data.json', require('sassport-json-plugin'))
+    '$image-foo': sassport.asset('./images/foo.png', 'public/images/foo.png', require('image-size'))
   })
-  .render(...);
+  .render( ... );
+  
+// As a Sassport asset
+// * RECOMMENDED for Sassport modules
+sassport([ ... ])
+  .module('test')
+  .assets({
+    'image-bar': sassport.asset('./images/bar.png', 'public/images/bar.png', require('image-size'))
+  });
+```
+
+```scss
+@import 'test';
+
+img.foo {
+  width: map-get($image-foo, width);
+  height: map-get($image-foo, height);
+}
+
+img.bar {
+  width: map-get(sassport-asset('test', 'image-bar'), width);
+  height: map-get(sassport-asset('test', 'image-bar'), height);
+}
 ```
 
 ## Plugins
