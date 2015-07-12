@@ -19,6 +19,20 @@ var sassOptions = {
 
 sassport([ sassportMath, sassportTypography ])
   .render(sassOptions, function(err, result) { /* ... */ });
+  
+// With asset variables
+sassport([ ... ])
+  .variables({
+    // Meta data map of image (autodetected)
+    '$logo-image': sassport.asset('./path/to/logo.png'), 
+    // List of meta data maps of images
+    
+    '$images': sassport.asset('./path/to/images/**/*.png'), 
+    
+    // Specify custom transformer plugin
+    '$some-data': sassport.asset('./path/to/data.json', require('sassport-json-plugin'))
+  })
+  .render(...);
 ```
 
 ## Plugins
@@ -58,19 +72,4 @@ module.exports = sassport.module('say')
   });
 ```
 
-(Coming soon) You can also define custom mixins:
 
-```js
-sassport.module('hello-world')
-  .mixins({
-    'hello($message, $color)': function(message, color) {
-      return `
-        &:before {
-          display: block;
-          content: 'Hello, ${message}!';
-          color: ${color};
-        }
-      `;
-    }
-  });
-```
