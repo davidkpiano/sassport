@@ -28,8 +28,7 @@ var say = sassport
       baz: {
         quid: 'nunk'
       }
-    },
-    '$test-image': sassport.asset('./testimage.png', imageSize)
+    }
   })
   .rulesets([
     '.baz { color: black; &.bar { color: green; }}'

@@ -31,23 +31,6 @@ sassport.wrap = function(unwrappedFunc, returnSass = false) {
   }
 };
 
-sassport.asset = function(file, transformer) {
-  let assetMeta = {
-    url: file
-  };
-
-  if (transformer) {
-    _.merge(assetMeta, transformer.call(null, file));
-  }
-
-  // Quote strings
-  assetMeta = _.mapValues(assetMeta, (value) => {
-    return _.isString(value) ? `"${value}"` : value;
-  });
-
-  return assetMeta;
-};
-
 sassport.utils = sassUtils;
 
 class Sassport {

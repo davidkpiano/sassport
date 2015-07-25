@@ -64,9 +64,9 @@ sassport.wrap = function (unwrappedFunc) {
   };
 };
 
-sassport.asset = function (file, transformer) {
+sassport.asset = function (file, path, transformer) {
   var assetMeta = {
-    url: file
+    url: path
   };
 
   if (transformer) {
