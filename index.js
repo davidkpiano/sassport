@@ -2,14 +2,29 @@ var sass = require('node-sass');
 var sassport = require('./dist/index.js');
 var _ = require('lodash');
 
-var imageSize = require('image-size');
+var fs = require('fs');
+var Imagemin = require('imagemin');
+var path = require('path');
+ 
+var imageSize = function(url){
+  return require('image-size')(url);
+};
+
+var sassportImageMin = function(url, done) {
+  url = url.getValue();
+
+  var img = new Imagemin().src(url).run(function(err, files) {
+    console.log(files);
+    done(files);
+  });
+}
 
 function camelCase(msg) {
   return _.camelCase(msg);
 }
 
-var foo = sassport.wrap(function(message) {
-  return 'Hi, '+message+'!';
+var foo = sassport.wrap(function(message, done) {
+  done('Hiyeo, '+message+'!!!!');
 });
 
 var say = sassport
@@ -17,7 +32,9 @@ var say = sassport
   .functions({
     'say($message)': function(message) {
       return sass.types.String(message.getValue() + '!!!');
-    }
+    },
+    'image-size($image)': sassport.wrap(imageSize),
+    'image-min($image)': sassport.asset(sassportImageMin)
   })
   .exports('./imports.scss')
   .variables({

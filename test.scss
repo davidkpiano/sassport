@@ -16,7 +16,7 @@ $blahblah: 'blah';
 }
 
 .image {
-  width: map-get($test-image, width);
-  height: map-get($test-image, height);
-  background-image: map-get($test-image, url);
+  $image: image-min('./testimage.png');
+
+  @debug $image;
 }

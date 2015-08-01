@@ -54,34 +54,47 @@ sassport.wrap = function (unwrappedFunc) {
       args[_key] = arguments[_key];
     }
 
+    var done = args.pop();
+    var innerDone = function innerDone(result) {
+      done(returnSass ? result : sassUtils.castToSass(result));
+    };
+
     args = args.map(function (arg) {
       return sassUtils.castToJs(arg);
     });
 
-    var result = unwrappedFunc.apply(undefined, args);
+    var result = unwrappedFunc.apply(undefined, args.concat([innerDone]));
 
-    return returnSass ? result : sassUtils.castToSass(result);
+    return innerDone(result);
   };
 };
 
-sassport.asset = function (file, path, transformer) {
-  var assetMeta = {
-    url: path
+sassport.asset = function (assetFunction) {
+  return function () {
+    for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    var done = args.pop();
+    var innerDone = function innerDone(result) {
+      _fs2['default'].writeFileSync('testimagemin.png', result);
+
+      done(sassUtils.castToSass('testimagemin.png'));
+    };
+
+    var result = assetFunction.apply(undefined, args.concat([innerDone]));
+
+    return innerDone(result);
   };
-
-  if (transformer) {
-    _lodash2['default'].merge(assetMeta, transformer.call(null, file));
-  }
-
-  // Quote strings
-  assetMeta = _lodash2['default'].mapValues(assetMeta, function (value) {
-    return _lodash2['default'].isString(value) ? '"' + value + '"' : value;
-  });
-
-  return assetMeta;
 };
 
 sassport.utils = sassUtils;
+
+var Asset = function Asset(fn) {
+  _classCallCheck(this, Asset);
+
+  this.assetFunction = fn;
+};
 
 var Sassport = (function () {
   function Sassport(name) {
