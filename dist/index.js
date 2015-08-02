@@ -8,7 +8,7 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _defineProperty(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); }
+function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -23,10 +23,6 @@ var _lodash2 = _interopRequireDefault(_lodash);
 var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
-
-var _templatesMixinJs = require('./templates/mixin.js');
-
-var _templatesMixinJs2 = _interopRequireDefault(_templatesMixinJs);
 
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
@@ -82,15 +78,21 @@ var Sassport = (function () {
     this.modules = modules;
     this.sass = renderer;
 
-    this._default = {
+    this._exportMeta = {
       contents: []
     };
+
+    this._exports = {};
 
     this._mixins = {};
 
     var options = {
-      functions: {},
-      importer: [this._defaultImporter.bind(this)]
+      functions: {
+        'asset-url($source)': sassport.wrap(function (source) {
+          return '/dist/' + source;
+        })
+      },
+      importer: this._importer.bind(this)
     };
 
     modules.map(function (module) {
@@ -131,62 +133,67 @@ var Sassport = (function () {
   }, {
     key: 'exports',
     value: function exports(exportMap) {
-      var _this = this;
-
-      if (arguments.length == 1) {
-        exportMap = { 'default': arguments[0] };
-      } else if (arguments.length == 2) {
-        exportMap = _defineProperty({}, arguments[0], arguments[1]);
-      }
-
-      var _loop = function (path) {
-        var exportUrl = '' + _this.name + '/' + path;
+      for (var path in exportMap) {
         var exportFile = exportMap[path];
+        var exportMeta = {};
 
         if (path === 'default') {
-          _this._default.file = exportFile;
+          this._exportMeta.file = exportFile;
 
-          return 'continue';
+          continue;
         }
 
-        var importer = function importer(url, prev, done) {
-          if (url == exportUrl) {
-            done({ file: exportFile });
-          }
+        exportMeta = {
+          file: exportFile
         };
 
-        _this.options.importer.push(importer);
-      };
-
-      for (var path in exportMap) {
-        var _ret = _loop(path);
-
-        if (_ret === 'continue') continue;
+        this._exports[path] = exportMeta;
       }
 
       return this;
     }
   }, {
-    key: '_defaultImporter',
-    value: function _defaultImporter(url, prev, done) {
-      if (url === this.name) {
-        var importerData = {};
+    key: '_importer',
+    value: function _importer(url, prev, done) {
+      var _url$split = url.split('/');
 
-        if (this._default.file) {
-          if (!this._default.contents.length) {
-            importerData.file = this._default.file;
-          } else {
-            importerData.contents = _fs2['default'].readFileSync(this._default.file);
-          }
-        }
+      var _url$split2 = _toArray(_url$split);
 
-        if (this._default.contents.length) {
-          console.log(this._default.contents);
-          importerData.contents += this._default.contents.join('');
-        }
+      var moduleName = _url$split2[0];
 
-        done(importerData);
+      var moduleImports = _url$split2.slice(1);
+
+      var module = null;
+      var importerData = {};
+
+      if (moduleName === this.name) {
+        module = this;
+      } else {
+        module = this.modules.find(function (childModule) {
+          childModule.name === moduleName;
+        });
       }
+
+      if (!module) return prev;
+
+      if (moduleImports.length) {
+        console.log(moduleImports[0]);
+        return this._exports[moduleImports[0]];
+      }
+
+      if (module._exportMeta.file) {
+        if (!module._exportMeta.contents.length) {
+          importerData.file = module._exportMeta.file;
+        } else {
+          importerData.contents = _fs2['default'].readFileSync(module._exportMeta.file);
+        }
+      }
+
+      if (module._exportMeta.contents.length) {
+        importerData.contents += module._exportMeta.contents.join('');
+      }
+
+      done(importerData);
     }
   }, {
     key: 'variables',
@@ -195,7 +202,7 @@ var Sassport = (function () {
         var value = variableMap[key];
         var sassValue = sassUtils.sassString(sassUtils.castToSass(value));
 
-        this._default.contents.push('' + key + ': ' + sassValue + ';');
+        this._exportMeta.contents.push('' + key + ': ' + sassValue + ';');
       }
 
       return this;
@@ -203,19 +210,16 @@ var Sassport = (function () {
   }, {
     key: 'rulesets',
     value: function rulesets(_rulesets) {
-      var _this2 = this;
+      var _this = this;
 
       _rulesets.map((function (ruleset) {
-        var renderedRuleset = _this2.sass.renderSync({ data: ruleset }).css.toString();
+        var renderedRuleset = _this.sass.renderSync({ data: ruleset }).css.toString();
 
-        _this2._default.contents.push(renderedRuleset);
+        _this._exportMeta.contents.push(renderedRuleset);
       }).bind(this));
 
       return this;
     }
-  }, {
-    key: 'assets',
-    value: function assets() {}
   }]);
 
   return Sassport;

@@ -22,7 +22,10 @@ var say = sassport
     },
     'image-size($image)': sassport.wrap(imageSize)
   })
-  .exports('./imports.scss')
+  .exports({
+    default: './imports.scss',
+    'foo': './foo.scss'
+  })
   .variables({
     '$test-again': 'a normal js string',
     '$color-primary': 'green',

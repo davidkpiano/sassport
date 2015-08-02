@@ -1,13 +1,12 @@
 @import 'say';
+@import 'say/foo';
 
 $blahblah: 'blah';
 
 .foo {
   bar: baz;
-  message: saypure('billybob');
   messageagain: say('bieibn');
   foo: foo('bejibjeij');
-  camel: camelCase('one-two-three-four');
   content: map-get(map-get($map, 'baz'), 'quid');
 
   something: $test;
@@ -17,6 +16,8 @@ $blahblah: 'blah';
 
 .image {
   $image: image-size('./testimage.png');
+
+  background-image: asset-url('testimage.png');
 
   @debug $image;
 }

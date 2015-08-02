@@ -3,8 +3,6 @@ import sass from 'node-sass';
 import _ from 'lodash';
 import fs from 'fs';
 
-import mixinTemplate from './templates/mixin.js';
-
 const sassUtils = require('node-sass-utils')(sass);
 
 let sassport = function(modules, renderer = sass) {
@@ -44,15 +42,21 @@ class Sassport {
     this.modules = modules;
     this.sass = renderer;
 
-    this._default = {
+    this._exportMeta = {
       contents: []
     };
+
+    this._exports = {};
 
     this._mixins = {};
 
     let options = {
-      functions: {},
-      importer: [ this._defaultImporter.bind(this) ]
+      functions: {
+        'asset-url($source)': sassport.wrap(function(source) {
+          return `/dist/${source}`;
+        })
+      },
+      importer: this._importer.bind(this)
     };
 
     modules.map(module => {
@@ -87,53 +91,59 @@ class Sassport {
   }
 
   exports(exportMap) {
-    if (arguments.length == 1) {
-      exportMap = { default: arguments[0] };
-    } else if (arguments.length == 2) {
-      exportMap = { [arguments[0]]: arguments[1] };
-    }
-
     for (let path in exportMap) {
-      let exportUrl = `${this.name}/${path}`;
       let exportFile = exportMap[path];
+      let exportMeta = {};
 
       if (path === 'default') {
-        this._default.file = exportFile;
+        this._exportMeta.file = exportFile;
 
         continue;
       }
 
-      let importer = function(url, prev, done) {
-        if (url == exportUrl) {
-          done({ file: exportFile });
-        }
-      }
+      exportMeta = {
+        file: exportFile
+      };
 
-      this.options.importer.push(importer);
+      this._exports[path] = (exportMeta);
     }
 
     return this;
   }
 
-  _defaultImporter(url, prev, done) {
-    if (url === this.name) {
-      let importerData = {};
+  _importer(url, prev, done) {
+    let [ moduleName, ...moduleImports ] = url.split('/');
+    let module = null;
+    let importerData = {};
 
-      if (this._default.file) {
-        if (!this._default.contents.length) {
-          importerData.file = this._default.file;
-        } else {
-          importerData.contents = fs.readFileSync(this._default.file);
-        }
-      }
-
-      if (this._default.contents.length) {
-        console.log(this._default.contents);
-        importerData.contents += this._default.contents.join('');
-      }
-
-      done(importerData);
+    if (moduleName === this.name) {
+      module = this;
+    } else {
+      module = this.modules.find((childModule) => {
+        childModule.name === moduleName;
+      });
     }
+
+    if (!module) return prev;
+
+    if (moduleImports.length) {
+      console.log(moduleImports[0]);
+      return this._exports[moduleImports[0]];
+    } 
+
+    if (module._exportMeta.file) {
+      if (!module._exportMeta.contents.length) {
+        importerData.file = module._exportMeta.file;
+      } else {
+        importerData.contents = fs.readFileSync(module._exportMeta.file);
+      }
+    }
+
+    if (module._exportMeta.contents.length) {
+      importerData.contents += module._exportMeta.contents.join('');
+    }
+
+    done(importerData);
   }
 
   variables(variableMap) {
@@ -141,7 +151,7 @@ class Sassport {
       let value = variableMap[key];
       let sassValue = sassUtils.sassString(sassUtils.castToSass(value));
 
-      this._default.contents.push(`${key}: ${sassValue};`)
+      this._exportMeta.contents.push(`${key}: ${sassValue};`)
     }
 
     return this;
@@ -149,16 +159,14 @@ class Sassport {
 
   rulesets(rulesets) {
     rulesets.map((ruleset) => {
-      let renderedRuleset = this.sass.renderSync({ data: ruleset }).css.toString();
+      let renderedRuleset = this.sass
+        .renderSync({ data: ruleset })
+        .css.toString();
 
-      this._default.contents.push(renderedRuleset);
+      this._exportMeta.contents.push(renderedRuleset);
     }.bind(this));
 
     return this;
-  }
-
-  assets() {
-
   }
 }
 
