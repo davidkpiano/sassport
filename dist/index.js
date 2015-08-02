@@ -47,7 +47,7 @@ sassport.module = function (name) {
 };
 
 sassport.wrap = function (unwrappedFunc) {
-  var returnSass = arguments[1] === undefined ? false : arguments[1];
+  var options = arguments[1] === undefined ? {} : arguments[1];
 
   return function () {
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
@@ -56,7 +56,7 @@ sassport.wrap = function (unwrappedFunc) {
 
     var done = args.pop();
     var innerDone = function innerDone(result) {
-      done(returnSass ? result : sassUtils.castToSass(result));
+      return done(options.returnSass ? result : sassUtils.castToSass(result));
     };
 
     args = args.map(function (arg) {
@@ -69,32 +69,7 @@ sassport.wrap = function (unwrappedFunc) {
   };
 };
 
-sassport.asset = function (assetFunction) {
-  return function () {
-    for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      args[_key2] = arguments[_key2];
-    }
-
-    var done = args.pop();
-    var innerDone = function innerDone(result) {
-      _fs2['default'].writeFileSync('testimagemin.png', result);
-
-      done(sassUtils.castToSass('testimagemin.png'));
-    };
-
-    var result = assetFunction.apply(undefined, args.concat([innerDone]));
-
-    return innerDone(result);
-  };
-};
-
 sassport.utils = sassUtils;
-
-var Asset = function Asset(fn) {
-  _classCallCheck(this, Asset);
-
-  this.assetFunction = fn;
-};
 
 var Sassport = (function () {
   function Sassport(name) {

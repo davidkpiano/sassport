@@ -21,11 +21,11 @@ sassport.module = function(name) {
   return new Sassport(name);
 };
 
-sassport.wrap = function(unwrappedFunc, returnSass = false) {
+sassport.wrap = function(unwrappedFunc, options = {}) {
   return function(...args) {
     let done = args.pop();
     let innerDone = function(result) {
-      done(returnSass ? result : sassUtils.castToSass(result));
+      return done(options.returnSass ? result : sassUtils.castToSass(result));
     };
 
     args = args.map(arg => sassUtils.castToJs(arg));
@@ -36,28 +36,7 @@ sassport.wrap = function(unwrappedFunc, returnSass = false) {
   }
 };
 
-sassport.asset = function(assetFunction) {
-  return function(...args) {
-    let done = args.pop();
-    let innerDone = function(result) {
-      fs.writeFileSync('testimagemin.png', result);
-
-      done(sassUtils.castToSass('testimagemin.png'));
-    };
-
-    let result = assetFunction(...args, innerDone);
-
-    return innerDone(result);
-  }
-};
-
 sassport.utils = sassUtils;
-
-class Asset {
-  constructor(fn) {
-    this.assetFunction = fn;
-  }
-}
 
 class Sassport {
   constructor(name, modules = [], renderer = sass) {

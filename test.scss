@@ -16,7 +16,7 @@ $blahblah: 'blah';
 }
 
 .image {
-  $image: image-min('./testimage.png');
+  $image: image-size('./testimage.png');
 
   @debug $image;
 }
