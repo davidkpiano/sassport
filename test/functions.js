@@ -6,31 +6,40 @@ var sassport = require('../dist/index.js');
 
 var sassportModule = sassport.module('test');
 
+function assertRenderSync(sassportModule, input, expected, done) {
+  sassportModule.renderSync({
+    data: input
+  }, function(err, result) {
+    if (err) console.error(err);
+
+    console.log(result.css.toString());
+
+    var actual = result.css.toString();
+
+    done(assert.equal(actual, expected));
+  });
+}
+
 
 describe('Sassport.functions', function() {
 
-  describe('unwrapped function', function() {
+  describe('unwrapped functions', function() {
     var sassportModule = sassport.module('test').functions({
       'foo($bar)': function(bar) {
         return sass.types.String('test ' + bar.getValue());
       }
     });
 
-    console.log(sassportModule.options.functions);
-
     it('should support unwrapped functions', function(done) {
-      sassportModule.renderSync({
-        data: 'test { test: foo("one"); }'
-      }, function(err, result) {
-        var actual = result.css.toString();
-        var expected = 'test {\n  test: test one; }\n';
-
-        done(assert.equal(actual, expected));
-      });
+      assertRenderSync(
+        sassportModule,
+        'test { test: foo("one"); }',
+        'test {\n  test: test one; }\n',
+        done);
     });
   });
 
-  describe('wrapped function', function() {
+  describe('wrapped functions', function() {
     var wrappedFunc = sassport.wrap(function(bar) {
       return 'wrap test ' + bar;
     });
@@ -39,18 +48,79 @@ describe('Sassport.functions', function() {
       'foo-wrap($bar)': wrappedFunc
     });
 
-    console.log(sassportModule.options.functions);
-
     it('should support wrapped functions', function(done) {
-      sassportModule.renderSync({
-        data: 'test { test: foo-wrap("one"); }'
-      }, function(err, result) {
-        console.log(err);
-        var actual = result.css.toString();
-        var expected = 'test {\n  test: wrap test one; }\n';
+      assertRenderSync(
+        sassportModule,
+        'test { test: foo-wrap("one"); }',
+        'test {\n  test: wrap test one; }\n',
+        done);
+    });
 
-        done(assert.equal(actual, expected));
-      });
+  });
+
+  describe('wrapped functions with done()', function(done) {
+    var wrappedDoneFunc = sassport.wrap(function(bar, done) {
+      done('wrap done test ' + bar);
+    });
+
+    var sassportModule = sassport.module('test').functions({
+      'foo-wrap-done($bar)': wrappedDoneFunc
+    });
+    
+    it('should allow done() to be called inside wrapped functions', function(done) {
+      assertRenderSync(
+        sassportModule,
+        'test { test: foo-wrap-done("one"); }',
+        'test {\n  test: wrap done test one; }\n',
+        done);
+    });
+  });
+
+  describe('wrapped functions with done()', function(done) {
+    var wrappedDoneFunc = sassport.wrap(function(bar, done) {
+      done('wrap done test ' + bar);
+    });
+
+    var sassportModule = sassport.module('test').functions({
+      'foo-wrap-done($bar)': wrappedDoneFunc
+    });
+    
+    it('should allow done() to be called inside wrapped functions', function(done) {
+      assertRenderSync(
+        sassportModule,
+        'test { test: foo-wrap-done("one"); }',
+        'test {\n  test: wrap done test one; }\n',
+        done);
+    });
+  });
+
+  describe('functions from imported modules', function(done) {
+    var sassportModule = sassport([ require('./fixtures/single-module.js') ]);
+
+    it('should import functions from imported modules', function(done) {
+      assertRenderSync(
+        sassportModule,
+        'test { unwrapped: single-unwrapped("foo"); wrapped: single-wrapped("bar"); }',
+        'test {\n  unwrapped: foo!!!;\n  wrapped: bar!!!; }\n',
+        done);
+    });
+  });
+
+  describe('overridden functions from imported modules', function(done) {
+    var sassportModule = sassport([ require('./fixtures/single-module.js') ]);
+
+    sassportModule.functions({
+      'single-wrapped($val)': sassport.wrap(function(val) {
+        return val + ' overridden';
+      })
+    });
+
+    it('should overwrite imported functions from imported modules', function(done) {
+      assertRenderSync(
+        sassportModule,
+        'test { unwrapped: single-unwrapped("foo"); wrapped: single-wrapped("bar"); }',
+        'test {\n  unwrapped: foo!!!;\n  wrapped: bar overridden; }\n',
+        done);
     });
   });
 });

@@ -20,6 +20,9 @@ var say = sassport
     'say($message)': function(message) {
       return sass.types.String(message.getValue() + '!!!');
     },
+    'say-done($message)': sassport.wrap(function(msg, done) {
+      done(msg + 'yeah!!');
+    }),
     'image-size($image)': sassport.wrap(imageSize)
   })
   .exports({

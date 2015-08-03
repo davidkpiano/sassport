@@ -25,7 +25,9 @@ sassport.module = function(name) {
 sassport.wrap = function(unwrappedFunc, options = {}) {
   return function(...args) {
     let done = args.pop();
+    console.log(done);
     let innerDone = function(result) {
+      console.log('innerDone called');
       return done(options.returnSass ? result : sassUtils.castToSass(result));
     };
 

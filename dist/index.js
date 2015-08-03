@@ -61,7 +61,9 @@ sassport.wrap = function (unwrappedFunc) {
     }
 
     var done = args.pop();
+    console.log(done);
     var innerDone = function innerDone(result) {
+      console.log('innerDone called');
       return done(options.returnSass ? result : sassUtils.castToSass(result));
     };
 
