@@ -30,6 +30,10 @@ var _fs2 = _interopRequireDefault(_fs);
 
 var _ncp = require('ncp');
 
+var _mkdirp = require('mkdirp');
+
+var _mkdirp2 = _interopRequireDefault(_mkdirp);
+
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
 var sassport = function sassport(modules) {
@@ -92,11 +96,14 @@ var Sassport = (function () {
 
     this._mixins = {};
 
+    this._localAssetPath = this._remoteAssetPath = null;
+
     var options = {
       functions: {
-        'asset-url($source)': (function (source) {
+        'asset-url($source, $module: null)': (function (source, module) {
+          var modulePath = sassUtils.isNull(module) ? '' : module.getValue();
           var assetPath = source.getValue();
-          var assetUrl = 'url(' + _path2['default'].join(this._remoteAssetPath, assetPath) + ')';
+          var assetUrl = 'url(' + _path2['default'].join(this._remoteAssetPath, modulePath, assetPath) + ')';
 
           return _nodeSass2['default'].types.String(assetUrl);
         }).bind(this)
@@ -172,6 +179,8 @@ var Sassport = (function () {
   }, {
     key: '_importer',
     value: function _importer(url, prev, done) {
+      var _this = this;
+
       var _url$split = url.split('/');
 
       var _url$split2 = _toArray(_url$split);
@@ -200,8 +209,6 @@ var Sassport = (function () {
         exportMeta = this._exports[moduleImports[0]];
       }
 
-      console.log(url, exportMeta);
-
       if (module._exportMeta.file) {
         if (!exportMeta.contents || !exportMeta.contents.length) {
           importerData.file = exportMeta.file;
@@ -215,13 +222,17 @@ var Sassport = (function () {
       }
 
       if (exportMeta.directory) {
-        importerData.contents = '// Imported ' + moduleImports[0];
+        (function () {
+          var assetDirPath = _path2['default'].join(_this._localAssetPath, moduleName, moduleImports[0]);
 
-        _ncp.ncp(exportMeta.directory, _path2['default'].join(this._localAssetPath, moduleImports[0]), function (err, res) {
-          console.log(res, err);
+          _mkdirp2['default'](assetDirPath, function (err, res) {
+            if (err) console.error(err);
 
-          done(importerData);
-        });
+            _ncp.ncp(exportMeta.directory, assetDirPath, function (err, res) {
+              done(importerData);
+            });
+          });
+        })();
       } else {
         done(importerData);
       }
@@ -241,12 +252,12 @@ var Sassport = (function () {
   }, {
     key: 'rulesets',
     value: function rulesets(_rulesets) {
-      var _this = this;
+      var _this2 = this;
 
       _rulesets.map((function (ruleset) {
-        var renderedRuleset = _this.sass.renderSync({ data: ruleset }).css.toString();
+        var renderedRuleset = _this2.sass.renderSync({ data: ruleset }).css.toString();
 
-        _this._exportMeta.contents.push(renderedRuleset);
+        _this2._exportMeta.contents.push(renderedRuleset);
       }).bind(this));
 
       return this;
@@ -259,11 +270,7 @@ var Sassport = (function () {
       this._localAssetPath = _path2['default'].join(localPath, 'sassport-assets');
       this._remoteAssetPath = remotePath;
 
-      try {
-        _fs2['default'].mkdirSync(this._localAssetPath);
-      } catch (e) {
-        if (e.code !== 'EEXIST') throw e;
-      }
+      _mkdirp2['default'].sync(this._localAssetPath);
 
       return this;
     }

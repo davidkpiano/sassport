@@ -4,6 +4,7 @@ import _ from 'lodash';
 import path from 'path';
 import fs from 'fs';
 import { ncp } from 'ncp';
+import mkdirp from 'mkdirp';
 
 const sassUtils = require('node-sass-utils')(sass);
 
@@ -52,11 +53,14 @@ class Sassport {
 
     this._mixins = {};
 
+    this._localAssetPath = this._remoteAssetPath = null;
+
     let options = {
       functions: {
-        'asset-url($source)': function(source) {
+        'asset-url($source, $module: null)': function(source, module) {
+          let modulePath = sassUtils.isNull(module) ? '' : module.getValue();
           let assetPath = source.getValue();
-          let assetUrl = `url(${path.join(this._remoteAssetPath, assetPath)})`;
+          let assetUrl = `url(${path.join(this._remoteAssetPath, modulePath, assetPath)})`;
 
           return sass.types.String(assetUrl);
         }.bind(this)
@@ -146,8 +150,6 @@ class Sassport {
       exportMeta =  this._exports[moduleImports[0]];
     }
 
-    console.log(url, exportMeta);
-
     if (module._exportMeta.file) {
       if (!exportMeta.contents || !exportMeta.contents.length) {
         importerData.file = exportMeta.file;
@@ -161,12 +163,14 @@ class Sassport {
     }
 
     if (exportMeta.directory) {
-      importerData.contents = `// Imported ${moduleImports[0]}`;
+      let assetDirPath = path.join(this._localAssetPath, moduleName, moduleImports[0]);
 
-      ncp(exportMeta.directory, path.join(this._localAssetPath, moduleImports[0]), function(err, res) {
-        console.log(res, err);
+      mkdirp(assetDirPath, (err, res) => {
+        if (err) console.error(err);
 
-        done(importerData);
+        ncp(exportMeta.directory, assetDirPath, (err, res) => {
+          done(importerData);
+        });
       });
     } else {
       done(importerData);
@@ -200,11 +204,7 @@ class Sassport {
     this._localAssetPath = path.join(localPath, 'sassport-assets');
     this._remoteAssetPath = remotePath;
 
-    try {
-      fs.mkdirSync(this._localAssetPath);
-    } catch(e) {
-      if (e.code !== 'EEXIST') throw e;
-    }
+    mkdirp.sync(this._localAssetPath);
 
     return this;
   }

@@ -18,7 +18,7 @@ $blahblah: 'blah';
 .image {
   $image: image-size('./testimage.png');
 
-  background-image: asset-url('testimage.png');
+  background-image: asset-url('testimage.png', 'say/images');
 
   @debug $image;
 }
