@@ -20,9 +20,15 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
 var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
+
+var _ncp = require('ncp');
 
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
@@ -45,7 +51,7 @@ sassport.module = function (name) {
 sassport.wrap = function (unwrappedFunc) {
   var options = arguments[1] === undefined ? {} : arguments[1];
 
-  return function () {
+  return (function () {
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
@@ -62,7 +68,7 @@ sassport.wrap = function (unwrappedFunc) {
     var result = unwrappedFunc.apply(undefined, args.concat([innerDone]));
 
     return innerDone(result);
-  };
+  }).bind(this);
 };
 
 sassport.utils = sassUtils;
@@ -88,9 +94,12 @@ var Sassport = (function () {
 
     var options = {
       functions: {
-        'asset-url($source)': sassport.wrap(function (source) {
-          return '/dist/' + source;
-        })
+        'asset-url($source)': (function (source) {
+          var assetPath = source.getValue();
+          var assetUrl = 'url(' + _path2['default'].join(this._remoteAssetPath, assetPath) + ')';
+
+          return _nodeSass2['default'].types.String(assetUrl);
+        }).bind(this)
       },
       importer: this._importer.bind(this)
     };
@@ -133,21 +142,29 @@ var Sassport = (function () {
   }, {
     key: 'exports',
     value: function exports(exportMap) {
-      for (var path in exportMap) {
-        var exportFile = exportMap[path];
-        var exportMeta = {};
+      for (var exportKey in exportMap) {
+        var exportPath = exportMap[exportKey];
+        var exportMeta = {
+          file: null,
+          directory: null,
+          content: null
+        };
 
-        if (path === 'default') {
-          this._exportMeta.file = exportFile;
+        if (exportKey === 'default') {
+          this._exportMeta.file = exportPath;
 
           continue;
         }
 
-        exportMeta = {
-          file: exportFile
-        };
+        if (_fs2['default'].lstatSync(exportPath).isDirectory()) {
+          exportMeta.directory = exportPath;
 
-        this._exports[path] = exportMeta;
+          delete exportMeta.file;
+        } else {
+          exportMeta.file = exportPath;
+        }
+
+        this._exports[exportKey] = exportMeta;
       }
 
       return this;
@@ -165,6 +182,7 @@ var Sassport = (function () {
 
       var module = null;
       var importerData = {};
+      var exportMeta = undefined;
 
       if (moduleName === this.name) {
         module = this;
@@ -176,24 +194,37 @@ var Sassport = (function () {
 
       if (!module) return prev;
 
+      exportMeta = module._exportMeta;
+
       if (moduleImports.length) {
-        console.log(moduleImports[0]);
-        return this._exports[moduleImports[0]];
+        exportMeta = this._exports[moduleImports[0]];
       }
 
+      console.log(url, exportMeta);
+
       if (module._exportMeta.file) {
-        if (!module._exportMeta.contents.length) {
-          importerData.file = module._exportMeta.file;
+        if (!exportMeta.contents || !exportMeta.contents.length) {
+          importerData.file = exportMeta.file;
         } else {
-          importerData.contents = _fs2['default'].readFileSync(module._exportMeta.file);
+          importerData.contents = _fs2['default'].readFileSync(exportMeta.file);
         }
       }
 
-      if (module._exportMeta.contents.length) {
-        importerData.contents += module._exportMeta.contents.join('');
+      if (exportMeta.contents && exportMeta.contents.length) {
+        importerData.contents += exportMeta.contents.join('');
       }
 
-      done(importerData);
+      if (exportMeta.directory) {
+        importerData.contents = '// Imported ' + moduleImports[0];
+
+        _ncp.ncp(exportMeta.directory, _path2['default'].join(this._localAssetPath, moduleImports[0]), function (err, res) {
+          console.log(res, err);
+
+          done(importerData);
+        });
+      } else {
+        done(importerData);
+      }
     }
   }, {
     key: 'variables',
@@ -217,6 +248,22 @@ var Sassport = (function () {
 
         _this._exportMeta.contents.push(renderedRuleset);
       }).bind(this));
+
+      return this;
+    }
+  }, {
+    key: 'assets',
+    value: function assets(localPath) {
+      var remotePath = arguments[1] === undefined ? null : arguments[1];
+
+      this._localAssetPath = _path2['default'].join(localPath, 'sassport-assets');
+      this._remoteAssetPath = remotePath;
+
+      try {
+        _fs2['default'].mkdirSync(this._localAssetPath);
+      } catch (e) {
+        if (e.code !== 'EEXIST') throw e;
+      }
 
       return this;
     }

@@ -1,7 +1,9 @@
 
 import sass from 'node-sass';
 import _ from 'lodash';
+import path from 'path';
 import fs from 'fs';
+import { ncp } from 'ncp';
 
 const sassUtils = require('node-sass-utils')(sass);
 
@@ -31,7 +33,7 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
     let result = unwrappedFunc(...args, innerDone);
 
     return innerDone(result);
-  }
+  }.bind(this);
 };
 
 sassport.utils = sassUtils;
@@ -52,9 +54,12 @@ class Sassport {
 
     let options = {
       functions: {
-        'asset-url($source)': sassport.wrap(function(source) {
-          return `/dist/${source}`;
-        })
+        'asset-url($source)': function(source) {
+          let assetPath = source.getValue();
+          let assetUrl = `url(${path.join(this._remoteAssetPath, assetPath)})`;
+
+          return sass.types.String(assetUrl);
+        }.bind(this)
       },
       importer: this._importer.bind(this)
     };
@@ -91,21 +96,29 @@ class Sassport {
   }
 
   exports(exportMap) {
-    for (let path in exportMap) {
-      let exportFile = exportMap[path];
-      let exportMeta = {};
+    for (let exportKey in exportMap) {
+      let exportPath = exportMap[exportKey];
+      let exportMeta = {
+        file: null,
+        directory: null,
+        content: null
+      };
 
-      if (path === 'default') {
-        this._exportMeta.file = exportFile;
+      if (exportKey === 'default') {
+        this._exportMeta.file = exportPath;
 
         continue;
       }
 
-      exportMeta = {
-        file: exportFile
-      };
+      if (fs.lstatSync(exportPath).isDirectory()) {
+        exportMeta.directory = exportPath;
 
-      this._exports[path] = (exportMeta);
+        delete exportMeta.file;
+      } else {
+        exportMeta.file = exportPath;
+      }
+
+      this._exports[exportKey] = exportMeta;
     }
 
     return this;
@@ -115,6 +128,7 @@ class Sassport {
     let [ moduleName, ...moduleImports ] = url.split('/');
     let module = null;
     let importerData = {};
+    let exportMeta;
 
     if (moduleName === this.name) {
       module = this;
@@ -126,24 +140,37 @@ class Sassport {
 
     if (!module) return prev;
 
+    exportMeta = module._exportMeta;
+
     if (moduleImports.length) {
-      console.log(moduleImports[0]);
-      return this._exports[moduleImports[0]];
-    } 
+      exportMeta =  this._exports[moduleImports[0]];
+    }
+
+    console.log(url, exportMeta);
 
     if (module._exportMeta.file) {
-      if (!module._exportMeta.contents.length) {
-        importerData.file = module._exportMeta.file;
+      if (!exportMeta.contents || !exportMeta.contents.length) {
+        importerData.file = exportMeta.file;
       } else {
-        importerData.contents = fs.readFileSync(module._exportMeta.file);
+        importerData.contents = fs.readFileSync(exportMeta.file);
       }
     }
 
-    if (module._exportMeta.contents.length) {
-      importerData.contents += module._exportMeta.contents.join('');
+    if (exportMeta.contents && exportMeta.contents.length) {
+      importerData.contents += exportMeta.contents.join('');
     }
 
-    done(importerData);
+    if (exportMeta.directory) {
+      importerData.contents = `// Imported ${moduleImports[0]}`;
+
+      ncp(exportMeta.directory, path.join(this._localAssetPath, moduleImports[0]), function(err, res) {
+        console.log(res, err);
+
+        done(importerData);
+      });
+    } else {
+      done(importerData);
+    }
   }
 
   variables(variableMap) {
@@ -168,7 +195,19 @@ class Sassport {
 
     return this;
   }
-}
 
+  assets(localPath, remotePath = null) {
+    this._localAssetPath = path.join(localPath, 'sassport-assets');
+    this._remoteAssetPath = remotePath;
+
+    try {
+      fs.mkdirSync(this._localAssetPath);
+    } catch(e) {
+      if (e.code !== 'EEXIST') throw e;
+    }
+
+    return this;
+  }
+}
 
 export default sassport;

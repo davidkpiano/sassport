@@ -24,7 +24,8 @@ var say = sassport
   })
   .exports({
     default: './imports.scss',
-    'foo': './foo.scss'
+    'foo': './_foo.scss',
+    'images': './test-dir'
   })
   .variables({
     '$test-again': 'a normal js string',
@@ -38,7 +39,8 @@ var say = sassport
   })
   .rulesets([
     '.baz { color: black; &.bar { color: green; }}'
-  ]);
+  ])
+  .assets('./my-assets', '/remote/my-assets');
 
 say.functions({
   'foo($msg)': foo
@@ -50,7 +52,8 @@ var sassOptions = {
 
 sassport([
   say
-]).render(sassOptions, function(err, result) {
+])
+.render(sassOptions, function(err, result) {
   console.log(err);
   console.log(result.css.toString());
 });
