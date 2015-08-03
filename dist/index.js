@@ -192,7 +192,9 @@ var Sassport = (function () {
       var moduleImports = _url$split2.slice(1);
 
       var module = null;
-      var importerData = {};
+      var importerData = {
+        contents: ''
+      };
       var exportMeta = undefined;
 
       if (moduleName === this.name) {

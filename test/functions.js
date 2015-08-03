@@ -20,7 +20,6 @@ function assertRenderSync(sassportModule, input, expected, done) {
   });
 }
 
-
 describe('Sassport.functions', function() {
 
   describe('unwrapped functions', function() {

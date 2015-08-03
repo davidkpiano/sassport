@@ -133,7 +133,9 @@ class Sassport {
   _importer(url, prev, done) {
     let [ moduleName, ...moduleImports ] = url.split('/');
     let module = null;
-    let importerData = {};
+    let importerData = {
+      contents: ''
+    };
     let exportMeta;
 
     if (moduleName === this.name) {
