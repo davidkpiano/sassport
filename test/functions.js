@@ -3,22 +3,9 @@ var should = require('should');
 var sass = require('node-sass');
 
 var sassport = require('../dist/index.js');
+var assertRenderSync = require('./util/assertRenderSync.js');
 
 var sassportModule = sassport.module('test');
-
-function assertRenderSync(sassportModule, input, expected, done) {
-  sassportModule.renderSync({
-    data: input
-  }, function(err, result) {
-    if (err) console.error(err);
-
-    console.log(result.css.toString());
-
-    var actual = result.css.toString();
-
-    done(assert.equal(actual, expected));
-  });
-}
 
 describe('Sassport.functions', function() {
 
@@ -33,7 +20,7 @@ describe('Sassport.functions', function() {
       assertRenderSync(
         sassportModule,
         'test { test: foo("one"); }',
-        'test {\n  test: test one; }\n',
+        'test{test:test one}\n',
         done);
     });
   });
@@ -51,7 +38,7 @@ describe('Sassport.functions', function() {
       assertRenderSync(
         sassportModule,
         'test { test: foo-wrap("one"); }',
-        'test {\n  test: wrap test one; }\n',
+        'test{test:wrap test one}\n',
         done);
     });
 
@@ -70,7 +57,7 @@ describe('Sassport.functions', function() {
       assertRenderSync(
         sassportModule,
         'test { test: foo-wrap-done("one"); }',
-        'test {\n  test: wrap done test one; }\n',
+        'test{test:wrap done test one}\n',
         done);
     });
   });
@@ -88,7 +75,7 @@ describe('Sassport.functions', function() {
       assertRenderSync(
         sassportModule,
         'test { test: foo-wrap-done("one"); }',
-        'test {\n  test: wrap done test one; }\n',
+        'test{test:wrap done test one}\n',
         done);
     });
   });
@@ -100,7 +87,7 @@ describe('Sassport.functions', function() {
       assertRenderSync(
         sassportModule,
         'test { unwrapped: single-unwrapped("foo"); wrapped: single-wrapped("bar"); }',
-        'test {\n  unwrapped: foo!!!;\n  wrapped: bar!!!; }\n',
+        'test{unwrapped:foo!!!;wrapped:bar!!!}\n',
         done);
     });
   });
@@ -118,7 +105,7 @@ describe('Sassport.functions', function() {
       assertRenderSync(
         sassportModule,
         'test { unwrapped: single-unwrapped("foo"); wrapped: single-wrapped("bar"); }',
-        'test {\n  unwrapped: foo!!!;\n  wrapped: bar overridden; }\n',
+        'test{unwrapped:foo!!!;wrapped:bar overridden}\n',
         done);
     });
   });

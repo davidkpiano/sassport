@@ -4,20 +4,7 @@ var sass = require('node-sass');
 
 var sassport = require('../dist/index.js');
 
-function assertRenderSync(sassportModule, input, expected, done) {
-  sassportModule.renderSync({
-    data: input,
-    outputStyle: 'compressed'
-  }, function(err, result) {
-    if (err) console.error(err);
-
-    console.log(result.css.toString());
-
-    var actual = result.css.toString();
-
-    done(assert.equal(actual, expected));
-  });
-}
+var assertRenderSync = require('./util/assertRenderSync.js');
 
 describe('Sassport.variables', function() {
 
@@ -49,14 +36,15 @@ describe('Sassport.variables', function() {
       '$number': 123.456,
       '$list': ['a', 'b', 'c'],
       '$map': { a: 1, b: 2, c: 3 },
-      '$boolean': false 
+      '$boolean': false,
+      '$null': null
     });
 
     it('should map JS value types to Sass types correctly', function(done) {    
       assertRenderSync(
         sassportModule,
-        '@import "test"; test { string: type-of($string); number: type-of($number); list: type-of($list); map: type-of($map); boolean: type-of($boolean); }',
-        'test{string:string;number:number;list:list;map:map;boolean:bool}\n',
+        '@import "test"; test { string: type-of($string); number: type-of($number); list: type-of($list); map: type-of($map); boolean: type-of($boolean); null: type-of($null); }',
+        'test{string:string;number:number;list:list;map:map;boolean:bool;null:null}\n',
         done);
     });
   });
