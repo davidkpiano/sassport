@@ -24,18 +24,19 @@ sassport.module = function(name) {
 
 sassport.wrap = function(unwrappedFunc, options = {}) {
   return function(...args) {
-    let done = args.pop();
-    console.log(done);
+    let outerDone = args.pop();
+
     let innerDone = function(result) {
-      console.log('innerDone called');
-      return done(options.returnSass ? result : sassUtils.castToSass(result));
+      outerDone(options.returnSass ? result : sassUtils.castToSass(result));
     };
 
     args = args.map(arg => sassUtils.castToJs(arg));
 
     let result = unwrappedFunc(...args, innerDone);
 
-    return innerDone(result);
+    if (typeof result !== 'undefined') {
+      innerDone(result);
+    }
   }.bind(this);
 };
 

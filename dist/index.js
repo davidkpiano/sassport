@@ -60,11 +60,10 @@ sassport.wrap = function (unwrappedFunc) {
       args[_key] = arguments[_key];
     }
 
-    var done = args.pop();
-    console.log(done);
+    var outerDone = args.pop();
+
     var innerDone = function innerDone(result) {
-      console.log('innerDone called');
-      return done(options.returnSass ? result : sassUtils.castToSass(result));
+      outerDone(options.returnSass ? result : sassUtils.castToSass(result));
     };
 
     args = args.map(function (arg) {
@@ -73,7 +72,9 @@ sassport.wrap = function (unwrappedFunc) {
 
     var result = unwrappedFunc.apply(undefined, args.concat([innerDone]));
 
-    return innerDone(result);
+    if (typeof result !== 'undefined') {
+      innerDone(result);
+    }
   }).bind(this);
 };
 

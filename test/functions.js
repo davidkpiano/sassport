@@ -46,25 +46,9 @@ describe('Sassport.functions', function() {
 
   describe('wrapped functions with done()', function(done) {
     var wrappedDoneFunc = sassport.wrap(function(bar, done) {
-      done('wrap done test ' + bar);
-    });
-
-    var sassportModule = sassport.module('test').functions({
-      'foo-wrap-done($bar)': wrappedDoneFunc
-    });
-    
-    it('should allow done() to be called inside wrapped functions', function(done) {
-      assertRenderSync(
-        sassportModule,
-        'test { test: foo-wrap-done("one"); }',
-        'test{test:wrap done test one}\n',
-        done);
-    });
-  });
-
-  describe('wrapped functions with done()', function(done) {
-    var wrappedDoneFunc = sassport.wrap(function(bar, done) {
-      done('wrap done test ' + bar);
+      setTimeout(function(){
+        done('wrap done test ' + bar);
+      }, 10);
     });
 
     var sassportModule = sassport.module('test').functions({
