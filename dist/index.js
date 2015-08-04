@@ -82,6 +82,8 @@ sassport.utils = sassUtils;
 
 var Sassport = (function () {
   function Sassport(name) {
+    var _this = this;
+
     var modules = arguments[1] === undefined ? [] : arguments[1];
     var renderer = arguments[2] === undefined ? _nodeSass2['default'] : arguments[2];
 
@@ -90,6 +92,8 @@ var Sassport = (function () {
     this.name = name;
     this.modules = modules;
     this.sass = renderer;
+
+    console.log(this.name, this.modules.length);
 
     this._exportMeta = {
       contents: []
@@ -101,7 +105,7 @@ var Sassport = (function () {
 
     this._localAssetPath = this._remoteAssetPath = null;
 
-    var options = {
+    this.options = {
       functions: {
         'asset-url($source, $module: null)': (function (source, module) {
           var modulePath = sassUtils.isNull(module) ? '' : module.getValue();
@@ -111,14 +115,13 @@ var Sassport = (function () {
           return _nodeSass2['default'].types.String(assetUrl);
         }).bind(this)
       },
-      importer: this._importer.bind(this)
+      importer: this._importer,
+      sassport: this // carried over to node-sass
     };
 
-    modules.map(function (module) {
-      _lodash2['default'].merge(options, module.options);
+    this.modules.map(function (module) {
+      _lodash2['default'].merge(_this.options, module.options);
     });
-
-    this.options = options;
   }
 
   _createClass(Sassport, [{
@@ -132,6 +135,10 @@ var Sassport = (function () {
     key: 'render',
     value: function render(options, emitter) {
       _lodash2['default'].extend(this.options, options);
+
+      this.options.importer = this._importer;
+
+      console.log(this.modules.length);
 
       return this.sass.render(this.options, emitter);
     }
@@ -180,10 +187,13 @@ var Sassport = (function () {
       return this;
     }
   }, {
+    key: 'getLocalAssetPath',
+    value: function getLocalAssetPath() {
+      return this._localAssetPath;
+    }
+  }, {
     key: '_importer',
     value: function _importer(url, prev, done) {
-      var _this = this;
-
       var _url$split = url.split('/');
 
       var _url$split2 = _toArray(_url$split);
@@ -198,10 +208,12 @@ var Sassport = (function () {
       };
       var exportMeta = undefined;
 
-      if (moduleName === this.name) {
-        module = this;
+      var sassportModule = this.options.sassport;
+
+      if (moduleName === sassportModule.name) {
+        module = sassportModule;
       } else {
-        module = this.modules.find(function (childModule) {
+        module = sassportModule.modules.find(function (childModule) {
           childModule.name === moduleName;
         });
       }
@@ -211,7 +223,7 @@ var Sassport = (function () {
       exportMeta = module._exportMeta;
 
       if (moduleImports.length) {
-        exportMeta = this._exports[moduleImports[0]];
+        exportMeta = sassportModule._exports[moduleImports[0]];
       }
 
       if (module._exportMeta.file) {
@@ -228,7 +240,8 @@ var Sassport = (function () {
 
       if (exportMeta.directory) {
         (function () {
-          var assetDirPath = _path2['default'].join(_this._localAssetPath, moduleName, moduleImports[0]);
+          console.log(sassportModule);
+          var assetDirPath = _path2['default'].join(sassportModule._localAssetPath, moduleName, moduleImports[0]);
 
           _mkdirp2['default'](assetDirPath, function (err, res) {
             if (err) console.error(err);
@@ -270,12 +283,19 @@ var Sassport = (function () {
   }, {
     key: 'assets',
     value: function assets(localPath) {
+      var _this3 = this;
+
       var remotePath = arguments[1] === undefined ? null : arguments[1];
 
       this._localAssetPath = _path2['default'].join(localPath, 'sassport-assets');
       this._remoteAssetPath = remotePath;
 
       _mkdirp2['default'].sync(this._localAssetPath);
+
+      this.modules.map(function (module) {
+        module._localAssetPath = _this3._localAssetPath;
+        module._remoteAssetPath = _this3._remoteAssetPath;
+      });
 
       return this;
     }

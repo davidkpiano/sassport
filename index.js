@@ -42,8 +42,7 @@ var say = sassport
   })
   .rulesets([
     '.baz { color: black; &.bar { color: green; }}'
-  ])
-  .assets('./my-assets', '/remote/my-assets');
+  ]);
 
 say.functions({
   'foo($msg)': foo
@@ -56,6 +55,7 @@ var sassOptions = {
 sassport([
   say
 ])
+.assets('./my-assets', '/remote/my-assets')
 .render(sassOptions, function(err, result) {
   console.log(err);
   console.log(result.css.toString());

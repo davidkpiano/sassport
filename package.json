@@ -23,6 +23,7 @@
     "imagemin": "^3.2.0",
     "lodash": "^3.10.0",
     "mocha": "^2.2.5",
+    "rimraf": "^2.4.2",
     "should": "^7.0.1"
   },
   "dependencies": {
