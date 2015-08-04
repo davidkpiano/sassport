@@ -2,7 +2,7 @@ var assert = require('assert');
 var should = require('should');
 
 module.exports = function(sassportModule, input, expected, done) {
-  sassportModule.renderSync({
+  sassportModule.render({
     data: input,
     outputStyle: 'compressed'
   }, function(err, result) {

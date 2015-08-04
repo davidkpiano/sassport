@@ -38,7 +38,7 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
       innerDone(result);
     }
   }.bind(this);
-};
+}; 
 
 sassport.utils = sassUtils;
 
@@ -93,7 +93,7 @@ class Sassport {
   renderSync(options, emitter) {
     _.extend(this.options, options);
 
-    return this.sass.render(this.options, emitter);
+    return this.sass.renderSync(this.options, emitter);
   }
 
   functions(functionMap) {

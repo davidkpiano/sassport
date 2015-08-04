@@ -140,7 +140,7 @@ var Sassport = (function () {
     value: function renderSync(options, emitter) {
       _lodash2['default'].extend(this.options, options);
 
-      return this.sass.render(this.options, emitter);
+      return this.sass.renderSync(this.options, emitter);
     }
   }, {
     key: 'functions',
