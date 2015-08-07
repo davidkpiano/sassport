@@ -2,6 +2,8 @@ var sass = require('node-sass');
 var sassport = require('./dist/index.js');
 var _ = require('lodash');
 
+var testModule = require('./test-module/index.js');
+
 var imageSize = function(url){
   return require('image-size')(url);
 };
@@ -53,7 +55,8 @@ var sassOptions = {
 };
 
 sassport([
-  say
+  say,
+  testModule
 ])
 .assets('./my-assets', '/remote/my-assets')
 .render(sassOptions, function(err, result) {

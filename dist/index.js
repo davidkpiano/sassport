@@ -10,6 +10,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _nodeSass = require('node-sass');
@@ -70,7 +72,7 @@ sassport.wrap = function (unwrappedFunc) {
       return sassUtils.castToJs(arg);
     });
 
-    var result = unwrappedFunc.apply(undefined, args.concat([innerDone]));
+    var result = unwrappedFunc.apply(undefined, _toConsumableArray(args).concat([innerDone]));
 
     if (typeof result !== 'undefined') {
       innerDone(result);
@@ -93,8 +95,6 @@ var Sassport = (function () {
     this.modules = modules;
     this.sass = renderer;
 
-    console.log(this.name, this.modules.length);
-
     this._exportMeta = {
       contents: []
     };
@@ -116,7 +116,7 @@ var Sassport = (function () {
         }).bind(this)
       },
       importer: this._importer,
-      sassport: this // carried over to node-sass
+      sassportModules: modules // carried over to node-sass
     };
 
     this.modules.map(function (module) {
@@ -137,8 +137,6 @@ var Sassport = (function () {
       _lodash2['default'].extend(this.options, options);
 
       this.options.importer = this._importer;
-
-      console.log(this.modules.length);
 
       return this.sass.render(this.options, emitter);
     }
@@ -208,22 +206,18 @@ var Sassport = (function () {
       };
       var exportMeta = undefined;
 
-      var sassportModule = this.options.sassport;
+      var sassportModules = this.options.sassportModules;
 
-      if (moduleName === sassportModule.name) {
-        module = sassportModule;
-      } else {
-        module = sassportModule.modules.find(function (childModule) {
-          childModule.name === moduleName;
-        });
-      }
+      module = _lodash2['default'].find(sassportModules, function (childModule) {
+        return childModule.name === moduleName;
+      });
 
       if (!module) return prev;
 
       exportMeta = module._exportMeta;
 
       if (moduleImports.length) {
-        exportMeta = sassportModule._exports[moduleImports[0]];
+        exportMeta = module._exports[moduleImports[0]];
       }
 
       if (module._exportMeta.file) {
@@ -240,13 +234,12 @@ var Sassport = (function () {
 
       if (exportMeta.directory) {
         (function () {
-          console.log(sassportModule);
-          var assetDirPath = _path2['default'].join(sassportModule._localAssetPath, moduleName, moduleImports[0]);
+          var assetDirPath = _path2['default'].join(module._localAssetPath, moduleName, moduleImports[0]);
 
-          _mkdirp2['default'](assetDirPath, function (err, res) {
+          (0, _mkdirp2['default'])(assetDirPath, function (err, res) {
             if (err) console.error(err);
 
-            _ncp.ncp(exportMeta.directory, assetDirPath, function (err, res) {
+            (0, _ncp.ncp)(exportMeta.directory, assetDirPath, function (err, res) {
               done(importerData);
             });
           });
@@ -262,7 +255,7 @@ var Sassport = (function () {
         var value = variableMap[key];
         var sassValue = sassUtils.sassString(sassUtils.castToSass(value));
 
-        this._exportMeta.contents.push('' + key + ': ' + sassValue + ';');
+        this._exportMeta.contents.push(key + ': ' + sassValue + ';');
       }
 
       return this;

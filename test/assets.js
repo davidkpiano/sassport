@@ -14,12 +14,7 @@ describe('Sassport.assets', function() {
   var remoteAssetPath = '/remote/assets-test';
 
 
-  describe('asset() module method', function() {
-    after(function(done) {
-      rimraf(path.join(localAssetPath, 'sassport-assets'), function() {
-        done();
-      });
-    });
+  xdescribe('asset() module method', function() {
     
     var sassportModule = sassport
       .module('test')
@@ -46,6 +41,12 @@ describe('Sassport.assets', function() {
   });
 
   describe('assets via export() module method', function() {
+    // before(function(done) {
+    //   rimraf(path.join(localAssetPath, 'sassport-assets'), function() {
+    //     done();
+    //   });
+    // });
+
     var testModule = sassport
       .module('test')
       .exports({
@@ -56,12 +57,17 @@ describe('Sassport.assets', function() {
     var sassportModule = sassport([testModule])
       .assets(localAssetPath, remoteAssetPath);
 
-    sassportModule.render({
-      data: '@import "test";'
-    });
-
     it('should create the default imported module directory', function(done) {
-      done(assert.equal(path.join(moduleAssetPath, 'default-imgs'), 'bla'));
-    })
+      sassportModule.render({
+        data: '@import "test";'
+      }, function(err, result) {
+        var importedDirExists = fs.lstatSync(path.join(
+          moduleAssetPath,
+          'sassport-assets',
+          'default-imgs')).isDirectory();
+
+        done(assert.ok(importedDirExists));
+      });
+    });
   });
 });

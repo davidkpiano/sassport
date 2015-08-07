@@ -48,8 +48,6 @@ class Sassport {
     this.modules = modules;
     this.sass = renderer;
 
-    console.log(this.name, this.modules.length);
-
     this._exportMeta = {
       contents: []
     };
@@ -71,7 +69,7 @@ class Sassport {
         }.bind(this)
       },
       importer: this._importer,
-      sassport: this // carried over to node-sass
+      sassportModules: modules // carried over to node-sass
     };
 
     this.modules.map((module) => {
@@ -89,8 +87,6 @@ class Sassport {
     _.extend(this.options, options);
 
     this.options.importer = this._importer;
-
-    console.log(this.modules.length);
 
     return this.sass.render(this.options, emitter);
   }
@@ -148,22 +144,18 @@ class Sassport {
     };
     let exportMeta;
 
-    let sassportModule = this.options.sassport;
+    let sassportModules = this.options.sassportModules;
 
-    if (moduleName === sassportModule.name) {
-      module = sassportModule;
-    } else {
-      module = sassportModule.modules.find((childModule) => {
-        childModule.name === moduleName;
-      });
-    }
+    module = _.find(sassportModules, (childModule) => {
+      return childModule.name === moduleName;
+    });
 
     if (!module) return prev;
 
     exportMeta = module._exportMeta;
 
     if (moduleImports.length) {
-      exportMeta =  sassportModule._exports[moduleImports[0]];
+      exportMeta =  module._exports[moduleImports[0]];
     }
 
     if (module._exportMeta.file) {
@@ -179,8 +171,7 @@ class Sassport {
     }
 
     if (exportMeta.directory) {
-      console.log(sassportModule);
-      let assetDirPath = path.join(sassportModule._localAssetPath, moduleName, moduleImports[0]);
+      let assetDirPath = path.join(module._localAssetPath, moduleName, moduleImports[0]);
 
       mkdirp(assetDirPath, (err, res) => {
         if (err) console.error(err);
