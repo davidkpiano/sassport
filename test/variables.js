@@ -9,9 +9,9 @@ var assertRenderSync = require('./util/assertRenderSync.js');
 describe('Sassport.variables', function() {
 
   describe('standard JS values', function() {
-    var sassportModule = sassport.module('test');
+    var testModule = sassport.module('test');
 
-    sassportModule.variables({
+    testModule.variables({
       '$string': 'foobar',
       '$number': 123.456,
       '$list': ['a', 'b', 'c'],
@@ -21,7 +21,7 @@ describe('Sassport.variables', function() {
 
     it('should convert plain JS values to Sass values', function(done) {    
       assertRenderSync(
-        sassportModule,
+        sassport([testModule]),
         '@import "test"; test { string: inspect($string); number: inspect($number); list: inspect($list); map: inspect($map); boolean: inspect($boolean); }',
         'test{string:foobar;number:123.456;list:a, b, c;map:(a: 1, b: 2, c: 3);boolean:false}\n',
         done);
@@ -29,9 +29,9 @@ describe('Sassport.variables', function() {
   });
 
   describe('standard JS value types', function() {
-    var sassportModule = sassport.module('test');
+    var testModule = sassport.module('test');
 
-    sassportModule.variables({
+    testModule.variables({
       '$string': 'foobar',
       '$number': 123.456,
       '$list': ['a', 'b', 'c'],
@@ -42,7 +42,7 @@ describe('Sassport.variables', function() {
 
     it('should map JS value types to Sass types correctly', function(done) {    
       assertRenderSync(
-        sassportModule,
+        sassport([testModule]),
         '@import "test"; test { string: type-of($string); number: type-of($number); list: type-of($list); map: type-of($map); boolean: type-of($boolean); null: type-of($null); }',
         'test{string:string;number:number;list:list;map:map;boolean:bool;null:null}\n',
         done);
@@ -50,7 +50,7 @@ describe('Sassport.variables', function() {
   });
 
   describe('Sass value types', function() {
-    var sassportModule = sassport.module('test');
+    var testModule = sassport.module('test');
     var sassList = sass.types.List(3);
     sassList.setValue(0, sass.types.String('a'));
     sassList.setValue(1, sass.types.String('b'));
@@ -64,7 +64,7 @@ describe('Sassport.variables', function() {
     sassMap.setValue(1, sass.types.String('two'));
     sassMap.setValue(2, sass.types.String('three'));
 
-    sassportModule.variables({
+    testModule.variables({
       '$string': sass.types.String('foobar'),
       '$number': sass.types.Number(123.456),
       '$number-unit': sass.types.Number(123.456, 'px'),
@@ -77,7 +77,7 @@ describe('Sassport.variables', function() {
 
     it('should map JS value types to Sass types correctly', function(done) {    
       assertRenderSync(
-        sassportModule,
+        sassport([testModule]),
         '@import "test"; test {string: type-of($string); number: type-of($number); number-unit: type-of($number-unit); color: type-of($color); list: type-of($list); map: type-of($map); boolean: type-of($boolean); null: type-of($null); }',
         'test{string:string;number:number;number-unit:number;color:color;list:list;map:map;boolean:bool;null:null}\n',
         done);

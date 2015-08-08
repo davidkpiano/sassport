@@ -165,12 +165,6 @@ var Sassport = (function () {
           content: null
         };
 
-        if (exportKey === 'default') {
-          this._exportMeta.file = exportPath;
-
-          continue;
-        }
-
         if (_fs2['default'].lstatSync(exportPath).isDirectory()) {
           exportMeta.directory = exportPath;
 

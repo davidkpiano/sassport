@@ -112,12 +112,6 @@ class Sassport {
         content: null
       };
 
-      if (exportKey === 'default') {
-        this._exportMeta.file = exportPath;
-
-        continue;
-      }
-
       if (fs.lstatSync(exportPath).isDirectory()) {
         exportMeta.directory = exportPath;
 

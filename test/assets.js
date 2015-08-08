@@ -8,13 +8,14 @@ var rimraf = require('rimraf');
 var sassport = require('../dist/index.js');
 var assertRenderSync = require('./util/assertRenderSync.js');
 
+
 describe('Sassport.assets', function() {
   var localAssetPath = path.join(__dirname, 'assets-test');
   var moduleAssetPath = path.join(__dirname, 'module-assets');
   var remoteAssetPath = '/remote/assets-test';
 
 
-  xdescribe('asset() module method', function() {
+  describe('asset() module method', function() {
     
     var sassportModule = sassport
       .module('test')
@@ -41,11 +42,6 @@ describe('Sassport.assets', function() {
   });
 
   describe('assets via export() module method', function() {
-    // before(function(done) {
-    //   rimraf(path.join(localAssetPath, 'sassport-assets'), function() {
-    //     done();
-    //   });
-    // });
 
     var testModule = sassport
       .module('test')
@@ -59,12 +55,13 @@ describe('Sassport.assets', function() {
 
     it('should create the default imported module directory', function(done) {
       sassportModule.render({
-        data: '@import "test";'
+        data: '@import "test/default";'
       }, function(err, result) {
         var importedDirExists = fs.lstatSync(path.join(
-          moduleAssetPath,
+          localAssetPath,
           'sassport-assets',
-          'default-imgs')).isDirectory();
+          'test',
+          'default')).isDirectory();
 
         done(assert.ok(importedDirExists));
       });
