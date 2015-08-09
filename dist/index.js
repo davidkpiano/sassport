@@ -214,9 +214,11 @@ var Sassport = (function () {
         exportMeta = module._exports[moduleImports[0]];
       }
 
-      if (module._exportMeta.file) {
+      if (exportMeta.file) {
         if (!exportMeta.contents || !exportMeta.contents.length) {
           importerData.file = exportMeta.file;
+
+          delete importerData.contents;
         } else {
           importerData.contents = _fs2['default'].readFileSync(exportMeta.file);
         }

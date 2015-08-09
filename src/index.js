@@ -149,12 +149,14 @@ class Sassport {
     exportMeta = module._exportMeta;
 
     if (moduleImports.length) {
-      exportMeta =  module._exports[moduleImports[0]];
+      exportMeta = module._exports[moduleImports[0]];
     }
 
-    if (module._exportMeta.file) {
+    if (exportMeta.file) {
       if (!exportMeta.contents || !exportMeta.contents.length) {
         importerData.file = exportMeta.file;
+
+        delete importerData.contents;
       } else {
         importerData.contents = fs.readFileSync(exportMeta.file);
       }

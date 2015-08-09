@@ -1,6 +1,8 @@
 @import 'say';
+@import 'say/default';
 @import 'say/foo';
 @import 'say/images';
+// @import 'test/vars';
 
 $blahblah: 'blah';
 
