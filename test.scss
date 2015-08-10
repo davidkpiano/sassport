@@ -2,9 +2,16 @@
 @import 'say/default';
 @import 'say/foo';
 @import 'say/images';
-// @import 'test/vars';
 
 $blahblah: 'blah';
+
+$vars: require('../test-module/assets/testvars.js');
+
+test {
+  $primary-color: map-get($vars, primaryColor);
+  color: $primary-color;
+  font-size: map-get($vars, fontSize);
+}
 
 .foo {
   bar: baz;

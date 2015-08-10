@@ -66,6 +66,13 @@ class Sassport {
           let assetUrl = `url(${path.join(this._remoteAssetPath, modulePath, assetPath)})`;
 
           return sass.types.String(assetUrl);
+        }.bind(this),
+        'require($path)': function(file, done) {
+          file = file.getValue();
+
+          let data = require(path.resolve(this._localPath, file));
+
+          return sassUtils.castToSass(data);
         }.bind(this)
       },
       importer: this._importer,
@@ -138,9 +145,7 @@ class Sassport {
     };
     let exportMeta;
 
-    let sassportModules = this.options.sassportModules;
-
-    module = _.find(sassportModules, (childModule) => {
+    module = _.find(this.options.sassportModules, (childModule) => {
       return childModule.name === moduleName;
     });
 
@@ -205,12 +210,14 @@ class Sassport {
   }
 
   assets(localPath, remotePath = null) {
+    this._localPath = localPath;
     this._localAssetPath = path.join(localPath, 'sassport-assets');
     this._remoteAssetPath = remotePath;
 
     mkdirp.sync(this._localAssetPath);
 
     this.modules.map((module) => {
+      module._localPath = this._localPath;
       module._localAssetPath = this._localAssetPath;
       module._remoteAssetPath = this._remoteAssetPath;
     });

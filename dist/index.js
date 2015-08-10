@@ -113,6 +113,13 @@ var Sassport = (function () {
           var assetUrl = 'url(' + _path2['default'].join(this._remoteAssetPath, modulePath, assetPath) + ')';
 
           return _nodeSass2['default'].types.String(assetUrl);
+        }).bind(this),
+        'require($path)': (function (file, done) {
+          file = file.getValue();
+
+          var data = require(_path2['default'].resolve(this._localPath, file));
+
+          return sassUtils.castToSass(data);
         }).bind(this)
       },
       importer: this._importer,
@@ -200,9 +207,7 @@ var Sassport = (function () {
       };
       var exportMeta = undefined;
 
-      var sassportModules = this.options.sassportModules;
-
-      module = _lodash2['default'].find(sassportModules, function (childModule) {
+      module = _lodash2['default'].find(this.options.sassportModules, function (childModule) {
         return childModule.name === moduleName;
       });
 
@@ -276,12 +281,14 @@ var Sassport = (function () {
 
       var remotePath = arguments[1] === undefined ? null : arguments[1];
 
+      this._localPath = localPath;
       this._localAssetPath = _path2['default'].join(localPath, 'sassport-assets');
       this._remoteAssetPath = remotePath;
 
       _mkdirp2['default'].sync(this._localAssetPath);
 
       this.modules.map(function (module) {
+        module._localPath = _this3._localPath;
         module._localAssetPath = _this3._localAssetPath;
         module._remoteAssetPath = _this3._remoteAssetPath;
       });
