@@ -3,7 +3,8 @@ JavaScript modules for Sass (node-sass). Easily share JavaScript functions and v
 
 ##Quick Start
 1. `npm install sassport --save`
-2. Use `sassport` just like you would use node-sass:
+2. Use `sassport` just like you would use [Node-Sass](https://github.com/sass/node-sass#usage) (see example below)
+3. `node index.js`
 
 ```js
 // index.js
@@ -11,7 +12,10 @@ var sassport = require('sassport');
 
 sassport().render({
   file: 'path/to/stylesheet.scss'
-}, function(err, result) { /* ... */ });
+}, function(err, result) {
+  console.log(result.css.toString());
+  // ... or whatever you want to do with the result
+});
 ```
 
 ```js
