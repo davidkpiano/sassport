@@ -76,8 +76,6 @@ class Sassport {
 
           let data = require(path.resolve(this._localPath, file));
 
-          console.log(data);
-
           if (propPath) {
             data = _.get(data, propPath);
           }

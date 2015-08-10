@@ -123,8 +123,6 @@ var Sassport = (function () {
 
           var data = require(_path2['default'].resolve(this._localPath, file));
 
-          console.log(data);
-
           if (propPath) {
             data = _lodash2['default'].get(data, propPath);
           }
