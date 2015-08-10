@@ -38,7 +38,8 @@ var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
-var sassport = function sassport(modules) {
+var sassport = function sassport() {
+  var modules = arguments[0] === undefined ? [] : arguments[0];
   var renderer = arguments[1] === undefined ? _nodeSass2['default'] : arguments[1];
 
   if (!Array.isArray(modules)) {
@@ -49,6 +50,8 @@ var sassport = function sassport(modules) {
 
   return sassportInstance;
 };
+
+sassport.utils = sassUtils;
 
 sassport.module = function (name) {
   return new Sassport(name);
@@ -80,8 +83,6 @@ sassport.wrap = function (unwrappedFunc) {
   }).bind(this);
 };
 
-sassport.utils = sassUtils;
-
 var Sassport = (function () {
   function Sassport(name) {
     var _this = this;
@@ -103,7 +104,9 @@ var Sassport = (function () {
 
     this._mixins = {};
 
-    this._localAssetPath = this._remoteAssetPath = null;
+    this._localPath = _path2['default'].resolve('./');
+    this._localAssetPath = null;
+    this._remoteAssetPath = null;
 
     this.options = {
       functions: {
@@ -114,10 +117,17 @@ var Sassport = (function () {
 
           return _nodeSass2['default'].types.String(assetUrl);
         }).bind(this),
-        'require($path)': (function (file, done) {
+        'require($path, $propPath: null)': (function (file, propPath, done) {
           file = file.getValue();
+          propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
 
           var data = require(_path2['default'].resolve(this._localPath, file));
+
+          console.log(data);
+
+          if (propPath) {
+            data = _lodash2['default'].get(data, propPath);
+          }
 
           return sassUtils.castToSass(data);
         }).bind(this)

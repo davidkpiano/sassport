@@ -8,7 +8,7 @@ import mkdirp from 'mkdirp';
 
 const sassUtils = require('node-sass-utils')(sass);
 
-let sassport = function(modules, renderer = sass) {
+let sassport = function(modules = [], renderer = sass) {
   if (!Array.isArray(modules)) {
     modules = [modules];
   }
@@ -17,6 +17,8 @@ let sassport = function(modules, renderer = sass) {
 
   return sassportInstance;
 };
+
+sassport.utils = sassUtils;
 
 sassport.module = function(name) {
   return new Sassport(name);
@@ -40,7 +42,6 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
   }.bind(this);
 }; 
 
-sassport.utils = sassUtils;
 
 class Sassport {
   constructor(name, modules = [], renderer = sass) {
@@ -56,7 +57,9 @@ class Sassport {
 
     this._mixins = {};
 
-    this._localAssetPath = this._remoteAssetPath = null;
+    this._localPath = path.resolve('./');
+    this._localAssetPath = null;
+    this._remoteAssetPath = null;
 
     this.options = {
       functions: {
@@ -67,10 +70,17 @@ class Sassport {
 
           return sass.types.String(assetUrl);
         }.bind(this),
-        'require($path)': function(file, done) {
+        'require($path, $propPath: null)': function(file, propPath, done) {
           file = file.getValue();
+          propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
 
           let data = require(path.resolve(this._localPath, file));
+
+          console.log(data);
+
+          if (propPath) {
+            data = _.get(data, propPath);
+          }
 
           return sassUtils.castToSass(data);
         }.bind(this)
