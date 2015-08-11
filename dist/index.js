@@ -60,6 +60,10 @@ sassport.module = function (name) {
 sassport.wrap = function (unwrappedFunc) {
   var options = arguments[1] === undefined ? {} : arguments[1];
 
+  options = _lodash2['default'].defaults(options, {
+    done: true
+  });
+
   return (function () {
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
@@ -72,10 +76,22 @@ sassport.wrap = function (unwrappedFunc) {
     };
 
     args = args.map(function (arg) {
-      return sassUtils.castToJs(arg);
+      var result = sassUtils.castToJs(arg);
+
+      // Get unitless value from number
+      if (result.value) result = result.value;
+
+      // Get simple get/set interface from map
+      if (result.coerce) result = result.coerce;
+
+      return result;
     });
 
-    var result = unwrappedFunc.apply(undefined, _toConsumableArray(args).concat([innerDone]));
+    if (options.done) {
+      args.push(innerDone);
+    }
+
+    var result = unwrappedFunc.apply(undefined, _toConsumableArray(args));
 
     if (typeof result !== 'undefined') {
       innerDone(result);

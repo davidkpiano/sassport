@@ -30,15 +30,35 @@ describe('Sassport.functions', function() {
       return 'wrap test ' + bar;
     });
 
+    var wrappedNumberFunc = sassport.wrap(function(val) {
+      return 3 + val;
+    });
+
+    var wrappedMapFunc = sassport.wrap(function(val) {
+      return val.get('foo');
+    });
+
+    var wrappedMapSetFunc = sassport.wrap(function(val) {
+      return val.set('baz', 42);
+    });
+
+    var wrappedListFunc = sassport.wrap(function(val) {
+      return val[3];
+    });
+
     var sassportModule = sassport.module('test').functions({
-      'foo-wrap($bar)': wrappedFunc
+      'foo-wrap($bar)': wrappedFunc,
+      'number-wrap($val)': wrappedNumberFunc,
+      'map-wrap($val)': wrappedMapFunc,
+      'map-set-wrap($val)': wrappedMapSetFunc,
+      'list-wrap($val)': wrappedListFunc
     });
 
     it('should support wrapped functions', function(done) {
       assertRenderSync(
         sassportModule,
-        'test { test: foo-wrap("one"); }',
-        'test{test:wrap test one}\n',
+        'test { test: foo-wrap("one"); num: number-wrap(5); map: map-wrap((a: 1, b: 2, foo: bar)); map-set: map-get(map-set-wrap((a: 1, b: 2)), baz); list: list-wrap(10 12 14 42 18); }',
+        'test{test:wrap test one;num:8;map:bar;map-set:42;list:42}\n',
         done);
     });
 

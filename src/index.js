@@ -25,6 +25,10 @@ sassport.module = function(name) {
 };
 
 sassport.wrap = function(unwrappedFunc, options = {}) {
+  options = _.defaults(options, {
+    done: true
+  });
+
   return function(...args) {
     let outerDone = args.pop();
 
@@ -32,9 +36,23 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
       outerDone(options.returnSass ? result : sassUtils.castToSass(result));
     };
 
-    args = args.map(arg => sassUtils.castToJs(arg));
+    args = args.map((arg) => {
+        var result = sassUtils.castToJs(arg);
 
-    let result = unwrappedFunc(...args, innerDone);
+        // Get unitless value from number
+        if (result.value) result = result.value;
+
+        // Get simple get/set interface from map
+        if (result.coerce) result = result.coerce;
+
+        return result;
+      });
+
+    if (options.done) {
+      args.push(innerDone);
+    }
+
+    let result = unwrappedFunc(...args);
 
     if (typeof result !== 'undefined') {
       innerDone(result);
