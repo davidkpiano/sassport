@@ -91,8 +91,8 @@ sassport([ /* modules */ ])
 ```scss
 .my-image {
   // Renders as:
-  // background-url: url(public/assets/images/my-image.png);
-  background-url: asset-url('images/my-image.png');
+  // background-image: url(public/assets/images/my-image.png);
+  background-image: asset-url('images/my-image.png');
 }
 ```
 
@@ -104,8 +104,8 @@ When you `@import` assets (files or directories) from a Sassport module, those g
 
 .their-image {
   // Renders as:
-  // background-url: url(public/assets/sassport-assets/images/their-image.png);
-  background-url: asset-url('images/their-image.png', 'foo-module');
+  // background-image: url(public/assets/sassport-assets/images/their-image.png);
+  background-image: asset-url('images/their-image.png', 'foo-module');
 }
 ```
 
