@@ -1,14 +1,15 @@
 # Sassport
 ![Sassport logo](https://raw.githubusercontent.com/davidkpiano/sassport/master/sassport-sm.png)
 
-JavaScript modules for Sass (node-sass). Easily share JavaScript functions and values in your Sass projects.
+JavaScript modules for Sass (node-sass). Easily share JavaScript functions and values in your Sass projects. **Still in alpha mode!**
 
 ## Quick Start
-1. `npm install sassport --save`
+1. `npm install sassport --save-dev`
 2. Use `sassport` just like you would use [Node-Sass](https://github.com/sass/node-sass#usage) (see example below)
 3. Use `require()` in your Sass (SCSS) stylesheets to import JS values (see example below)
 3. `node index.js`
 
+**EXAMPLE:**
 ```js
 // index.js
 var sassport = require('sassport');
@@ -48,6 +49,7 @@ $colors: require('path/to/my-colors'); // Just like Node require()!
 ## Using Sassport modules
 Sassport modules can provide extra functionality and give you access to module-specific stylesheets. The syntax for including Sassport modules is very similar to [PostCSS' syntax](https://github.com/postcss/postcss#usage):
 
+**EXAMPLE:**
 ```js
 var sassport = require('sassport');
 
@@ -77,6 +79,7 @@ When a Sassport module is included:
 ## Managing Assets
 To specify where your assets are, configure the asset paths by using the `.assets(localAssetPath, remoteAssetPath)` method. Then, you can use the Sass helper function `asset-url($source, $module: null)` to generate the remote URL path. The `$source` is relative to the provided `localAssetPath`.
 
+**EXAMPLE:**
 ```js
 var sassport = require('sassport');
 
@@ -95,6 +98,7 @@ sassport([ /* modules */ ])
 
 When you `@import` assets (files or directories) from a Sassport module, those get copied into the `sassport-assets/` subdirectory inside the provided `localAssetPath`. These assets can then be referenced in `asset-url()` by specifying the `$module` that it came from.
 
+**EXAMPLE:**
 ```scss
 @import 'foo-module/images';
 
@@ -103,4 +107,37 @@ When you `@import` assets (files or directories) from a Sassport module, those g
   // background-url: url(public/assets/sassport-assets/images/their-image.png);
   background-url: asset-url('images/their-image.png', 'foo-module');
 }
+```
+
+## Creating Sassport Modules
+A Sassport module is created with `sassport.module(name)`. From there, you can use the below methods to configure your Sassport module:
+
+- `.functions({...})` - Registers a collection of custom functions, just like in [Node-Sass](https://github.com/sass/node-sass#functions--v300---experimental), with the Sassport module.
+- `.variables({...})` - Registers Sass `$variables` whose values can either be Sass values or JS values (converted to Sass values automatically).
+- `.exports({...})` - Registers exports whose values are either file paths or directory paths to Sass stylesheets or assets.
+
+**EXAMPLE:**
+```js
+var sassport = require('sassport');
+var sass = require('node-sass');
+
+module.exports = sassport.module('test')
+  .functions({
+    'greet($val)': function(val) {
+      return sass.types.String('Hello, ' + val.getValue());
+    },
+    'greet-simple($value)': sassport.wrap(function(val) {
+      return 'Hey, ' + val;
+    }
+  })
+  .variables({
+    '$a-number': 42,
+    '$a-string': 'Sassport rocks!',
+    '$a-list': [1, 2, 3, 4, 5],
+    '$a-map': {a: 1, b: 2, c: 3}
+  })
+  .exports({
+    'default': __dirname + '/stylesheets/main.scss', // @import 'test';
+    'images': __dirname + '/images', // @import 'test/images';
+  });
 ```
