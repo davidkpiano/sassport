@@ -1,9 +1,11 @@
 # Sassport
+![Sassport logo](https://raw.githubusercontent.com/davidkpiano/sassport/master/sassport-sm.png)
 JavaScript modules for Sass (node-sass). Easily share JavaScript functions and values in your Sass projects.
 
-##Quick Start
+## Quick Start
 1. `npm install sassport --save`
 2. Use `sassport` just like you would use [Node-Sass](https://github.com/sass/node-sass#usage) (see example below)
+3. Use `require()` in your Sass (SCSS) stylesheets to import JS values (see example below)
 3. `node index.js`
 
 ```js
