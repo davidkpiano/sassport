@@ -73,3 +73,34 @@ When a Sassport module is included:
 - Sass functions from that module get imported automatically.
 - Sass variables and rulesets get imported when you `@import 'that-module'`.
 - Specified exports get imported when you `@import 'that-module/specific-export'`.
+
+## Managing Assets
+To specify where your assets are, configure the asset paths by using the `.assets(localAssetPath, remoteAssetPath)` method. Then, you can use the Sass helper function `asset-url($source, $module: null)` to generate the remote URL path. The `$source` is relative to the provided `localAssetPath`.
+
+```js
+var sassport = require('sassport');
+
+sassport([ /* modules */ ])
+  .assets(__dirname + '/assets', 'public/assets')
+  .render(/* ... */);
+```
+
+```scss
+.my-image {
+  // Renders as:
+  // background-url: url(public/assets/images/my-image.png);
+  background-url: asset-url('images/my-image.png');
+}
+```
+
+When you `@import` assets (files or directories) from a Sassport module, those get copied into the `sassport-assets/` subdirectory inside the provided `localAssetPath`. These assets can then be referenced in `asset-url()` by specifying the `$module` that it came from.
+
+```scss
+@import 'foo-module/images';
+
+.their-image {
+  // Renders as:
+  // background-url: url(public/assets/sassport-assets/images/their-image.png);
+  background-url: asset-url('images/their-image.png', 'foo-module');
+}
+```
