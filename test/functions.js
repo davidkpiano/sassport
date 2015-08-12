@@ -113,4 +113,16 @@ describe('Sassport.functions', function() {
         done);
     });
   });
+
+  describe('wrapped functions with options', function(done) {
+    var sassportModule = sassport([ require('./fixtures/single-module.js') ]);
+
+    it('should properly quote a string with "quotes" option', function(done) {
+      assertRenderSync(
+        sassportModule,
+        'test { quoted: wrapped-options("foo"); }',
+        'test{quoted:"foo quoted"}\n',
+        done);
+    });
+  });
 });

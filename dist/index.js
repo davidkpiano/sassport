@@ -61,7 +61,8 @@ sassport.wrap = function (unwrappedFunc) {
   var options = arguments[1] === undefined ? {} : arguments[1];
 
   options = _lodash2['default'].defaults(options, {
-    done: true
+    done: true,
+    quotes: false
   });
 
   return (function () {
@@ -72,7 +73,7 @@ sassport.wrap = function (unwrappedFunc) {
     var outerDone = args.pop();
 
     var innerDone = function innerDone(result) {
-      outerDone(options.returnSass ? result : sassUtils.castToSass(result));
+      outerDone(sassUtils.castToSass(result));
     };
 
     args = args.map(function (arg) {
@@ -87,11 +88,17 @@ sassport.wrap = function (unwrappedFunc) {
       return result;
     });
 
+    // Add 'done' callback if options.done is set true
     if (options.done) {
       args.push(innerDone);
     }
 
     var result = unwrappedFunc.apply(undefined, _toConsumableArray(args));
+
+    // Quote string if options.quotes is set true
+    if (options.quotes && _lodash2['default'].isString(result)) {
+      result = '"' + result + '"';
+    }
 
     if (typeof result !== 'undefined') {
       innerDone(result);
@@ -163,18 +170,23 @@ var Sassport = (function () {
       return this;
     }
   }, {
-    key: 'render',
-    value: function render(options, emitter) {
+    key: '_beforeRender',
+    value: function _beforeRender(options) {
       _lodash2['default'].extend(this.options, options);
 
       this.options.importer = this._importer;
+    }
+  }, {
+    key: 'render',
+    value: function render(options, emitter) {
+      this._beforeRender(options);
 
       return this.sass.render(this.options, emitter);
     }
   }, {
     key: 'renderSync',
     value: function renderSync(options, emitter) {
-      _lodash2['default'].extend(this.options, options);
+      this._beforeRender(options);
 
       return this.sass.renderSync(this.options, emitter);
     }
@@ -226,10 +238,10 @@ var Sassport = (function () {
       var moduleImports = _url$split2.slice(1);
 
       var module = null;
+      var exportMeta = undefined;
       var importerData = {
         contents: ''
       };
-      var exportMeta = undefined;
 
       module = _lodash2['default'].find(this.options.sassportModules, function (childModule) {
         return childModule.name === moduleName;
@@ -309,8 +321,10 @@ var Sassport = (function () {
       this._localAssetPath = _path2['default'].join(localPath, 'sassport-assets');
       this._remoteAssetPath = remotePath;
 
+      // Create the local asset path directory
       _mkdirp2['default'].sync(this._localAssetPath);
 
+      // Update the path information for each module
       this.modules.map(function (module) {
         module._localPath = _this3._localPath;
         module._localAssetPath = _this3._localAssetPath;

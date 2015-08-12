@@ -8,5 +8,8 @@ module.exports = sassport.module('single-module')
     },
     'single-wrapped': sassport.wrap(function(msg) {
       return msg + '!!!';
-    })
+    }),
+    'wrapped-options($val)': sassport.wrap(function(val) {
+      return val + ' quoted';
+    }, {quotes: true})
   });

@@ -26,14 +26,15 @@ sassport.module = function(name) {
 
 sassport.wrap = function(unwrappedFunc, options = {}) {
   options = _.defaults(options, {
-    done: true
+    done: true,
+    quotes: false
   });
 
   return function(...args) {
     let outerDone = args.pop();
 
     let innerDone = function(result) {
-      outerDone(options.returnSass ? result : sassUtils.castToSass(result));
+      outerDone(sassUtils.castToSass(result));
     };
 
     args = args.map((arg) => {
@@ -48,11 +49,17 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
         return result;
       });
 
+    // Add 'done' callback if options.done is set true
     if (options.done) {
       args.push(innerDone);
     }
 
     let result = unwrappedFunc(...args);
+
+    // Quote string if options.quotes is set true
+    if (options.quotes && _.isString(result)) {
+      result = `\"${result}\"`;
+    }
 
     if (typeof result !== 'undefined') {
       innerDone(result);
@@ -116,16 +123,20 @@ class Sassport {
     return this;
   }
 
-  render(options, emitter) {
+  _beforeRender(options) {
     _.extend(this.options, options);
 
     this.options.importer = this._importer;
+  }
+
+  render(options, emitter) {
+    this._beforeRender(options);
 
     return this.sass.render(this.options, emitter);
   }
 
   renderSync(options, emitter) {
-    _.extend(this.options, options);
+    this._beforeRender(options);
 
     return this.sass.renderSync(this.options, emitter);
   }
@@ -166,10 +177,10 @@ class Sassport {
   _importer(url, prev, done) {
     let [ moduleName, ...moduleImports ] = url.split('/');
     let module = null;
+    let exportMeta;
     let importerData = {
       contents: ''
     };
-    let exportMeta;
 
     module = _.find(this.options.sassportModules, (childModule) => {
       return childModule.name === moduleName;
@@ -240,8 +251,10 @@ class Sassport {
     this._localAssetPath = path.join(localPath, 'sassport-assets');
     this._remoteAssetPath = remotePath;
 
+    // Create the local asset path directory
     mkdirp.sync(this._localAssetPath);
 
+    // Update the path information for each module
     this.modules.map((module) => {
       module._localPath = this._localPath;
       module._localAssetPath = this._localAssetPath;
