@@ -106,6 +106,27 @@ sassport.wrap = function (unwrappedFunc) {
   }).bind(this);
 };
 
+sassport.eyeglass = function (name) {
+  var moduleFactory = arguments[1] === undefined ? null : arguments[1];
+
+  var sassportModule = new Sassport(name);
+  var eyeglassModule = undefined;
+
+  if (!moduleFactory) {
+    moduleFactory = require(name);
+  }
+
+  if (_lodash2['default'].isFunction(moduleFactory)) {
+    eyeglassModule = moduleFactory(null, _nodeSass2['default']);
+
+    sassportModule.functions(eyeglassModule.functions);
+
+    sassportModule.assets(eyeglassModule.sassDir);
+  }
+
+  return sassportModule;
+};
+
 var Sassport = (function () {
   function Sassport(name) {
     var _this = this;

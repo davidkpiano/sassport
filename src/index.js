@@ -67,6 +67,25 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
   }.bind(this);
 }; 
 
+sassport.eyeglass = function(name, moduleFactory = null) {
+  let sassportModule = new Sassport(name);
+  let eyeglassModule;
+
+  if (!moduleFactory) {
+    moduleFactory = require(name);
+  }
+
+  if (_.isFunction(moduleFactory)) {
+    eyeglassModule = moduleFactory(null, sass);
+
+    sassportModule.functions(eyeglassModule.functions);
+
+    sassportModule.assets(eyeglassModule.sassDir);
+  }
+
+  return sassportModule;
+};
+
 
 class Sassport {
   constructor(name, modules = [], renderer = sass) {

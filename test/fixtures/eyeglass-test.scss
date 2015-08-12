@@ -1,0 +1,6 @@
+@import 'eyeglass-math/index.scss';
+
+test {
+  pow: math-pow(3, 5);
+  pi: $PI;
+}
