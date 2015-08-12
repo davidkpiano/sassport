@@ -128,7 +128,7 @@ module.exports = sassport.module('test')
     },
     'greet-simple($value)': sassport.wrap(function(val) {
       return 'Hey, ' + val;
-    }
+    })
   })
   .variables({
     '$a-number': 42,
