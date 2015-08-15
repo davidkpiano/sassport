@@ -3,6 +3,9 @@
 
 JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript functions and values in your Sass projects. **Still in alpha mode!**
 
+- `npm install sassport --save-dev`
+- `sassport([...]).render(...);`
+
 ## Inspiration
 Sassport was created to solve a few problems related to creating and maintaining Sass projects:
 - How can values be shared between JavaScript and Sass?
