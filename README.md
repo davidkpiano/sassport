@@ -204,7 +204,7 @@ sassport()
   })
   .assets('./assets', 'public/assets')
   .render({
-    file: 'test.scss'
+    file: 'stylesheet.scss'
   }, function(err, res) {
     console.log(res.css.toString());
   });
