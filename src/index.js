@@ -88,9 +88,25 @@ class Sassport {
 
     this.options = {
       functions: {
-        'asset-url($source, $module: null)': function(source, module) {
+        'asset-path($source, $module: null)': function(source, module) {
           let modulePath = sassUtils.isNull(module) ? '' : module.getValue();
           let assetPath = source.getValue();
+          let localPath = modulePath ? this._localAssetPath : this._localPath;
+          let assetUrl = `${path.join(localPath, modulePath, assetPath)}`;
+
+          return sass.types.String(assetUrl);
+        }.bind(this),
+        'asset-url($source, $module: null)': function(source, module) {
+          if (!this._remoteAssetPath) {
+            throw 'Remote asset path not specified.\n\nSpecify the remote path with `sassport([...]).assets(localPath, remotePath)`.';
+          }
+
+          let modulePath = sassUtils.isNull(module)
+            ? ''
+            : `sassport-assets/${module.getValue()}`;
+          let assetPath = source.getValue();
+
+          console.log(this._remoteAssetPath, modulePath, assetPath);
           let assetUrl = `url(${path.join(this._remoteAssetPath, modulePath, assetPath)})`;
 
           return sass.types.String(assetUrl);

@@ -133,9 +133,23 @@ var Sassport = (function () {
 
     this.options = {
       functions: {
-        'asset-url($source, $module: null)': (function (source, module) {
+        'asset-path($source, $module: null)': (function (source, module) {
           var modulePath = sassUtils.isNull(module) ? '' : module.getValue();
           var assetPath = source.getValue();
+          var localPath = modulePath ? this._localAssetPath : this._localPath;
+          var assetUrl = '' + _path2['default'].join(localPath, modulePath, assetPath);
+
+          return _nodeSass2['default'].types.String(assetUrl);
+        }).bind(this),
+        'asset-url($source, $module: null)': (function (source, module) {
+          if (!this._remoteAssetPath) {
+            throw 'Remote asset path not specified.\n\nSpecify the remote path with `sassport([...]).assets(localPath, remotePath)`.';
+          }
+
+          var modulePath = sassUtils.isNull(module) ? '' : 'sassport-assets/' + module.getValue();
+          var assetPath = source.getValue();
+
+          console.log(this._remoteAssetPath, modulePath, assetPath);
           var assetUrl = 'url(' + _path2['default'].join(this._remoteAssetPath, modulePath, assetPath) + ')';
 
           return _nodeSass2['default'].types.String(assetUrl);
