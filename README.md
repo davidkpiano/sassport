@@ -1,7 +1,20 @@
 # Sassport
 ![Sassport logo](https://raw.githubusercontent.com/davidkpiano/sassport/master/sassport-sm.png)
 
-JavaScript modules for Sass (node-sass). Easily share JavaScript functions and values in your Sass projects. **Still in alpha mode!**
+JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript functions and values in your Sass projects. **Still in alpha mode!**
+
+## Inspiration
+Sassport was created to solve a few problems related to creating and maintaining Sass projects:
+- How can values be shared between JavaScript and Sass?
+- How can assets be easily included from 3rd-party modules, such as sprites, fonts, or other stylesheets?
+- Can remote asset URLs easily be managed, without hard-coding them in the stylesheets? (Yes!)
+- Can JavaScript functions be used inside Sass stylesheets? (Yes!)
+
+The last question is especially important - it means that you can communicate with JavaScript from Sass to do complex tasks such as creating sprite sheets and receive useful information from the completed task's return value, such as image dimensions or sprite locations. With `sassport.wrap()`, it's possible to wrap entire JavaScript libraries for use inside your Sass project.
+
+**Is this similar to [Sass Eyeglass](https://github.com/sass-eyeglass/eyeglass)?** Yes, and no. Both projects achieve similar goals, with different philosophies. Eyeglass is based on convention - 3rd-party Eyeglass modules must be configured to be _discoverable_ by Eyeglass via NPM. With Sassport, you _explicity_ state which Sassport plugins (modules) you're going to use, which can come from anywhere - NPM, Bower, or even your own project. This is very similar to how [PostCSS](https://github.com/postcss/postcss) works.
+
+Sassport is also agnostic and simple with assets - its only job is to copy assets from the source folder to your project's assets folder (inside the `sassport-assets` subdirectory). With this, you can wrap _any_ plugin to transform your assets (see [examples](#examples) below). Sassport is not meant to be another asset management tool - Gulp, Grunt, Broccoli, etc. already exist for that.
 
 ## Quick Start
 1. `npm install sassport --save-dev`
@@ -141,3 +154,29 @@ module.exports = sassport.module('test')
     'images': __dirname + '/images', // @import 'test/images';
   });
 ```
+
+```scss
+.greeting {
+  test: greet('David'); // Hello, David
+  test: greet-simple('David'); // Hey, David
+}
+```
+
+With the `sassport.wrap(fn, options)` utility function, normal JS functions can be wrapped to automatically have arguments converted to JS values, and to automatically have the JS return value converted to Sass values using this conversion:
+
+- `Number (Sass)` - converted to a _unitless_ JS number.
+- `Number (JS)` - converted to a _unitless_ Sass number.
+- `String (Sass)` - converted to a JS string.
+- `String (JS)` - converted to an _unquoted_ Sass string, unless `{quotes: true}` is specified for the `options` object.
+- `List (Sass)` - converted to a JS array.
+- `Array (JS)` - converted to a Sass list.
+- `Map (Sass)` - converted to a JS map-like object, with `.get(key)` and `.set(key, value)` methods.
+- `Object (JS)` - converted to a Sass map.
+- `Bool (Sass)` - converted to a JS boolean.
+- `Boolean (JS)` - converted to a Sass boolean.
+- `Null (Sass)` - converted to a JS `null` value.
+- `null (JS)` - converted to a Sass `null` value.
+
+Also, `sassport.utils` provides Chris Eppstein's excellent [node-sass-utils](https://github.com/sass-eyeglass/node-sass-utils) library.
+
+## Examples
