@@ -3,6 +3,9 @@
 
 JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript functions and values in your Sass projects. **Still in alpha mode!**
 
+- `npm install sassport --save-dev`
+- `sassport([...]).render(...);`
+
 ## Inspiration
 Sassport was created to solve a few problems related to creating and maintaining Sass projects:
 - How can values be shared between JavaScript and Sass?
@@ -180,3 +183,51 @@ With the `sassport.wrap(fn, options)` utility function, normal JS functions can 
 Also, `sassport.utils` provides Chris Eppstein's excellent [node-sass-utils](https://github.com/sass-eyeglass/node-sass-utils) library.
 
 ## Examples
+
+### Getting image dimensions
+**TERMINAL**
+```bash
+npm install sassport image-size --save-dev
+```
+
+**JAVASCRIPT**
+```js
+// index.js
+var sassport = require('sassport');
+var sizeOf = require('image-size');
+
+sassport()
+  .functions({
+    'size-of($path)': sassport.wrap(function(path) {
+      return sizeOf(path);
+    })
+  })
+  .assets('./assets', 'public/assets')
+  .render({
+    file: 'stylesheet.scss'
+  }, function(err, res) {
+    console.log(res.css.toString());
+  });
+```
+
+**SCSS**
+```scss
+// stylesheet.scss
+$image-path: 'sassport-sm.png';
+$image-size: size-of(asset-path($image-path));
+
+.my-image {
+  background-image: asset-url($image-path);
+  width: map-get($image-size, 'width') * 1px;
+  height: map-get($image-size, 'height') * 1px;
+}
+```
+
+**RESULT (CSS)**
+```css
+.my-image {
+  background-image: url(public/assets/sassport-sm.png);
+  width: 145px;
+  height: 175px;
+}
+```
