@@ -8,7 +8,13 @@ import mkdirp from 'mkdirp';
 
 const sassUtils = require('node-sass-utils')(sass);
 
-let sassport = function(modules = [], renderer = sass) {
+/**
+ * Factory for Sassport instances.
+ * @param  {Array}  modules  array of modules to include in instance.
+ * @param  {Object} renderer Sass renderer (node-sass).
+ * @return {Object}          returns Sassport instance.
+ */
+const sassport = function(modules = [], renderer = sass) {
   if (!Array.isArray(modules)) {
     modules = [modules];
   }
@@ -18,12 +24,27 @@ let sassport = function(modules = [], renderer = sass) {
   return sassportInstance;
 };
 
+/**
+ * Collection of utilities from 'node-sass-utils'.
+ * @type {Object}
+ */
 sassport.utils = sassUtils;
 
+/**
+ * Factory for Sassport modules.
+ * @param  {String} name name of module.
+ * @return {Object}      returns Sassport module.
+ */
 sassport.module = function(name) {
   return new Sassport(name);
 };
 
+/**
+ * Wraps a normal JS function where arguments are coerced from Sass values to JS values, and return values are coerced from JS values to Sass values.
+ * @param  {Function} unwrappedFunc the function to wrap.
+ * @param  {Object} options       (optional) options to pass into the wrapped function.
+ * @return {Function}               Returns a wrapped function.
+ */
 sassport.wrap = function(unwrappedFunc, options = {}) {
   options = _.defaults(options, {
     done: true,
@@ -69,6 +90,13 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
 
 
 class Sassport {
+  /**
+   * Constructor for Sassport instance/module.
+   * @param  {String} name     name of Sassport module.
+   * @param  {Array}  modules  array of modules to include in instance.
+   * @param  {Object} renderer Sass renderer (node-sass).
+   * @return {Object}          instance of Sassport module.
+   */
   constructor(name, modules = [], renderer = sass) {
     this.name = name;
     this.modules = modules;

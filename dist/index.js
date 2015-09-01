@@ -38,6 +38,12 @@ var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
+/**
+ * Factory for Sassport instances.
+ * @param  {Array}  modules  array of modules to include in instance.
+ * @param  {Object} renderer Sass renderer (node-sass).
+ * @return {Object}          returns Sassport instance.
+ */
 var sassport = function sassport() {
   var modules = arguments[0] === undefined ? [] : arguments[0];
   var renderer = arguments[1] === undefined ? _nodeSass2['default'] : arguments[1];
@@ -51,12 +57,27 @@ var sassport = function sassport() {
   return sassportInstance;
 };
 
+/**
+ * Collection of utilities from 'node-sass-utils'.
+ * @type {Object}
+ */
 sassport.utils = sassUtils;
 
+/**
+ * Factory for Sassport modules.
+ * @param  {String} name name of module.
+ * @return {Object}      returns Sassport module.
+ */
 sassport.module = function (name) {
   return new Sassport(name);
 };
 
+/**
+ * Wraps a normal JS function where arguments are coerced from Sass values to JS values, and return values are coerced from JS values to Sass values.
+ * @param  {Function} unwrappedFunc the function to wrap.
+ * @param  {Object} options       (optional) options to pass into the wrapped function.
+ * @return {Function}               Returns a wrapped function.
+ */
 sassport.wrap = function (unwrappedFunc) {
   var options = arguments[1] === undefined ? {} : arguments[1];
 
@@ -107,6 +128,14 @@ sassport.wrap = function (unwrappedFunc) {
 };
 
 var Sassport = (function () {
+  /**
+   * Constructor for Sassport instance/module.
+   * @param  {String} name     name of Sassport module.
+   * @param  {Array}  modules  array of modules to include in instance.
+   * @param  {Object} renderer Sass renderer (node-sass).
+   * @return {Object}          instance of Sassport module.
+   */
+
   function Sassport(name) {
     var _this = this;
 
