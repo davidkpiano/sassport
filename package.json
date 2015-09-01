@@ -1,6 +1,6 @@
 {
   "name": "sassport",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "JavaScript modules for Sass.",
   "main": "dist/index.js",
   "scripts": {
