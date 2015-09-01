@@ -1,10 +1,14 @@
 # Sassport
 ![Sassport logo](https://raw.githubusercontent.com/davidkpiano/sassport/master/sassport-sm.png)
 
-JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript functions and values in your Sass projects. **Still in alpha mode!**
+JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript functions and values in your Sass projects.
 
 - `npm install sassport --save-dev`
 - `sassport([...]).render(...);`
+- 
+## Available Plugins
+- [gulp-sassport](https://github.com/davidkpiano/gulp-sassport) (functional, work in progress)
+- More to come soon!
 
 ## Inspiration
 Sassport was created to solve a few problems related to creating and maintaining Sass projects:
