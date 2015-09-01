@@ -5,7 +5,7 @@ JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript fun
 
 - `npm install sassport --save-dev`
 - `sassport([...]).render(...);`
-- 
+
 ## Available Plugins
 - [gulp-sassport](https://github.com/davidkpiano/gulp-sassport) (functional, work in progress)
 - More to come soon!
