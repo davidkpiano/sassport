@@ -45,7 +45,7 @@ sassport().render({
 ```js
 // path/to/my-colors.js
 module.exports = {
-  primary: '#C0FF33'
+  primary: '#C0FF33',
   secondary: '#B4D455'
 };
 ```
