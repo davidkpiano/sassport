@@ -191,7 +191,7 @@ By default, Sassport automatically _infers_ Sass values from JavaScript strings.
 
 - `"235px"` becomes a Sass number with a `px` unit
 - `"#C0FF33"` becomes a Sass color (that looks nothing like coffee)
-- `"3rem + 5rem"` becomes a Sass number with value `7rem` and a `rem` unit
+- `"3rem + 5rem"` becomes a Sass number with value `8rem` and a `rem` unit
 - `"rebeccapurple"` becomes a Sass color (yes, color keywords are understood)
 - `"3px 5rem 0 auto"` becomes a Sass list
 - `"(a: 1, b: 2)"` becomes a Sass map
