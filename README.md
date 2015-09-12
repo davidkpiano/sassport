@@ -186,6 +186,18 @@ With the `sassport.wrap(fn, options)` utility function, normal JS functions can 
 
 Also, `sassport.utils` provides Chris Eppstein's excellent [node-sass-utils](https://github.com/sass-eyeglass/node-sass-utils) library.
 
+## Value Inference
+By default, Sassport automatically _infers_ Sass values from JavaScript strings. This means that you can seamlessly share CSS-like or (Sass-like) values as strings between JS and Sass, and Sassport will hand them over to sass as their *inferred values*, not as strings. For example:
+
+- `"235px"` becomes a Sass number with a `px` unit
+- `"#C0FF33"` becomes a Sass color (that looks nothing like coffee)
+- `"3rem + 5rem"` becomes a Sass number with value `7rem` and a `rem` unit
+- `"rebeccapurple"` becomes a Sass color (yes, color keywords are understood)
+- `"3px 5rem 0 auto"` becomes a Sass list
+- `"(a: 1, b: 2)"` becomes a Sass map
+
+To turn this option off, set `infer` to `false` as an option: `sassport([...], { infer: false }).render(...)`. If you do this, you can selectively use inference in custom wrapped functions: `sassport.wrap(fn, { infer: true });`, or as a param in the Sass `require()` function as `$infer: true`.
+
 ## Examples
 
 ### Getting image dimensions
