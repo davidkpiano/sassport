@@ -11,7 +11,7 @@ const sassUtils = require('node-sass-utils')(sass);
 /**
  * Factory for Sassport instances.
  * @param  {Array}  modules  array of modules to include in instance.
- * @param  {Object} renderer Sass renderer (node-sass).
+ * @param  {Object} options  Sassport-specific configuration options.
  * @return {Object}          returns Sassport instance.
  */
 const sassport = function(modules = [], options = {}) {
@@ -30,13 +30,14 @@ const sassport = function(modules = [], options = {}) {
  */
 sassport.utils = sassUtils;
 sassport.utils.toSass = (jsValue, infer = false) => {
-  console.log(jsValue, infer);
   if (infer && typeof jsValue === 'string') {
     jsValue = sassport.utils.infer(jsValue);
-  } else if (infer && typeof jsValue === 'object') {
-    jsValue = _.mapValues(jsValue, (subval) => sassport.utils.toSass(subval, infer));
-  } else if (infer && typeof jsValue === 'array') {
-    jsValue = _.map(jsValue, (item) => sassport.utils.toSass(item, infer));
+  } else if (infer && _.isArray(jsValue)) {
+    jsValue = _.map(jsValue, (item) => 
+      sassport.utils.toSass(item, infer));
+  } else if (infer && _.isObject(jsValue)) {
+    jsValue = _.mapValues(jsValue, (subval) => 
+      sassport.utils.toSass(subval, infer));
   }
 
   return sassUtils.castToSass(jsValue);
@@ -47,7 +48,7 @@ sassport.utils.infer = (jsValue) => {
 
   try {  
     sass.renderSync({
-      data: `$_: ___(${jsValue});`,
+      data: `$_: ___((${jsValue}));`,
       functions: {
         '___($value)': (value) => {
           result = value;
@@ -128,7 +129,7 @@ class Sassport {
    * Constructor for Sassport instance/module.
    * @param  {String} name     name of Sassport module.
    * @param  {Array}  modules  array of modules to include in instance.
-   * @param  {Object} renderer Sass renderer (node-sass).
+   * @param  {Object} options  Sassport-specific configuration options.
    * @return {Object}          instance of Sassport module.
    */
   constructor(name, modules = [], options = {}) {
@@ -177,7 +178,7 @@ class Sassport {
 
           return sass.types.String(assetUrl);
         }.bind(this),
-        'require($path, $propPath: null, $infer: false)': function(file, propPath, infer, done) {
+        [`require($path, $propPath: null, $infer: ${options.infer})`]: function(file, propPath, infer, done) {
           file = file.getValue();
           propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
 

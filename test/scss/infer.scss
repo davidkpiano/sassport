@@ -1,0 +1,11 @@
+
+
+$test: require('infer-js-test.js');
+
+@each $sassType, $tests in $test {
+  #{$sassType} {
+    @each $value in $tests {
+      test: type-of($value);
+    }
+  }
+}
