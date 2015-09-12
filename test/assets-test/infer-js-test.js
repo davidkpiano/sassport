@@ -1,6 +1,9 @@
 module.exports = {
   'string': [
     '"a quoted string"',
+    'auto',
+    'inherit',
+    'initial',
     'invalidKeyword',
     'sentence { with } illegal ; characters :',
     '3px + 5rem'
@@ -31,7 +34,8 @@ module.exports = {
     '12px 3rem 5%',
     '1, 2, 3',
     '(1, 2, 3)',
-    '(1 2 3)'
+    '(1 2 3)',
+    '10 12 14 42 18'
   ],
   'color': [
     'red',

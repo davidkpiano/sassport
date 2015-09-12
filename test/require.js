@@ -16,7 +16,7 @@ describe('Sassport require() function', function() {
 
     it('should pass through the converted JS object', function(done) {
       sassportModule.render({ data: testData, outputStyle: 'compressed' }, function(err, result) {
-        done(assert.equal(result.css.toString(), 'test{color:#C0FF33}\n'));
+        done(assert.equal(result.css.toString(), 'test{color:#c0ff33}\n'));
       });
     });
   });
@@ -43,7 +43,7 @@ describe('Sassport require() function', function() {
       assertRenderSync(
         sassportModule,
         testData,
-        'test{color:#C0FF33}\n',
+        'test{color:#c0ff33}\n',
         done);
     });
   });

@@ -57,7 +57,12 @@ describe('Sassport.functions', function() {
     it('should support wrapped functions', function(done) {
       assertRenderSync(
         sassportModule,
-        'test { test: foo-wrap("one"); num: number-wrap(5); map: map-wrap((a: 1, b: 2, foo: bar)); map-set: map-get(map-set-wrap((a: 1, b: 2)), baz); list: list-wrap(10 12 14 42 18); }',
+        'test { '
+        + 'test: foo-wrap("one");'
+        + 'num: number-wrap(5);'
+        + 'map: map-wrap((a: 1, b: 2, foo: bar));'
+        + 'map-set: map-get(map-set-wrap((a: 1, b: 2)), baz);'
+        + 'list: list-wrap(10 12 14 42 18); }',
         'test{test:wrap test one;num:8;map:bar;map-set:42;list:42}\n',
         done);
     });

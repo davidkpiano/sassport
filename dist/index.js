@@ -40,6 +40,8 @@ var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
+var USE_INFERENCE = true;
+
 /**
  * Factory for Sassport instances.
  * @param  {Array}  modules  array of modules to include in instance.
@@ -64,19 +66,27 @@ var sassport = function sassport() {
  * @type {Object}
  */
 sassport.utils = sassUtils;
-sassport.utils.toSass = function (jsValue) {
-  var infer = arguments[1] === undefined ? false : arguments[1];
 
-  if (infer && typeof jsValue === 'string') {
-    jsValue = sassport.utils.infer(jsValue);
-  } else if (infer && _lodash2['default'].isArray(jsValue)) {
-    jsValue = _lodash2['default'].map(jsValue, function (item) {
-      return sassport.utils.toSass(item, infer);
-    });
-  } else if (infer && _lodash2['default'].isObject(jsValue)) {
-    jsValue = _lodash2['default'].mapValues(jsValue, function (subval) {
-      return sassport.utils.toSass(subval, infer);
-    });
+sassport.utils.toSass = function (jsValue) {
+  var infer = arguments[1] === undefined ? USE_INFERENCE : arguments[1];
+
+  if (infer && jsValue && !(typeof jsValue.toSass === 'function')) {
+    // Infer Sass value from JS string value.
+    if (_lodash2['default'].isString(jsValue)) {
+      jsValue = sassport.utils.infer(jsValue);
+
+      // Check each item in array for inferable values.
+    } else if (_lodash2['default'].isArray(jsValue)) {
+      jsValue = _lodash2['default'].map(jsValue, function (item) {
+        return sassport.utils.toSass(item, infer);
+      });
+
+      // Check each value in object for inferable values.
+    } else if (_lodash2['default'].isObject(jsValue)) {
+      jsValue = _lodash2['default'].mapValues(jsValue, function (subval) {
+        return sassport.utils.toSass(subval, infer);
+      });
+    }
   }
 
   return sassUtils.castToSass(jsValue);
@@ -124,7 +134,7 @@ sassport.wrap = function (unwrappedFunc) {
   options = _lodash2['default'].defaults(options, {
     done: true,
     quotes: false,
-    infer: false
+    infer: USE_INFERENCE
   });
 
   return (function () {
@@ -159,7 +169,7 @@ sassport.wrap = function (unwrappedFunc) {
 
     // Quote string if options.quotes is set true
     if (options.quotes && _lodash2['default'].isString(result)) {
-      result = '"' + result + '"';
+      result = '\'"' + result + '"\'';
     }
 
     if (typeof result !== 'undefined') {
@@ -187,7 +197,7 @@ var Sassport = (function () {
 
     options = _lodash2['default'].defaults(options, {
       renderer: _nodeSass2['default'],
-      infer: false
+      infer: USE_INFERENCE
     });
 
     this.name = name;

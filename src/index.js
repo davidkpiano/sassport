@@ -8,6 +8,8 @@ import mkdirp from 'mkdirp';
 
 const sassUtils = require('node-sass-utils')(sass);
 
+const USE_INFERENCE = true;
+
 /**
  * Factory for Sassport instances.
  * @param  {Array}  modules  array of modules to include in instance.
@@ -29,15 +31,23 @@ const sassport = function(modules = [], options = {}) {
  * @type {Object}
  */
 sassport.utils = sassUtils;
-sassport.utils.toSass = (jsValue, infer = false) => {
-  if (infer && typeof jsValue === 'string') {
-    jsValue = sassport.utils.infer(jsValue);
-  } else if (infer && _.isArray(jsValue)) {
-    jsValue = _.map(jsValue, (item) => 
-      sassport.utils.toSass(item, infer));
-  } else if (infer && _.isObject(jsValue)) {
-    jsValue = _.mapValues(jsValue, (subval) => 
-      sassport.utils.toSass(subval, infer));
+
+sassport.utils.toSass = (jsValue, infer = USE_INFERENCE) => {
+  if (infer && jsValue && !(typeof jsValue.toSass === 'function')) {  
+    // Infer Sass value from JS string value.
+    if (_.isString(jsValue)) {
+      jsValue = sassport.utils.infer(jsValue);
+
+    // Check each item in array for inferable values.
+    } else if (_.isArray(jsValue)) {
+      jsValue = _.map(jsValue, (item) => 
+        sassport.utils.toSass(item, infer));
+
+    // Check each value in object for inferable values.
+    } else if (_.isObject(jsValue)) {
+      jsValue = _.mapValues(jsValue, (subval) => 
+        sassport.utils.toSass(subval, infer));
+    }
   }
 
   return sassUtils.castToSass(jsValue);
@@ -83,7 +93,7 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
   options = _.defaults(options, {
     done: true,
     quotes: false,
-    infer: false
+    infer: USE_INFERENCE
   });
 
   return function(...args) {
@@ -114,7 +124,7 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
 
     // Quote string if options.quotes is set true
     if (options.quotes && _.isString(result)) {
-      result = `\"${result}\"`;
+      result = `'"${result}"'`;
     }
 
     if (typeof result !== 'undefined') {
@@ -135,7 +145,7 @@ class Sassport {
   constructor(name, modules = [], options = {}) {
     options = _.defaults(options, {
       renderer: sass,
-      infer: false
+      infer: USE_INFERENCE
     });
 
     this.name = name;
@@ -347,5 +357,6 @@ class Sassport {
     return this;
   }
 }
+
 
 export default sassport;
