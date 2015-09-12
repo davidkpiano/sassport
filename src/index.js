@@ -29,6 +29,39 @@ const sassport = function(modules = [], renderer = sass) {
  * @type {Object}
  */
 sassport.utils = sassUtils;
+sassport.utils.toSass = (jsValue, infer = false) => {
+  console.log(jsValue, infer);
+  if (infer && typeof jsValue === 'string') {
+    jsValue = sassport.utils.infer(jsValue);
+  } else if (infer && typeof jsValue === 'object') {
+    jsValue = _.mapValues(jsValue, (subval) => sassport.utils.toSass(subval, infer));
+  } else if (infer && typeof jsValue === 'array') {
+    jsValue = _.map(jsValue, (item) => sassport.utils.toSass(item, infer));
+  }
+
+  return sassUtils.castToSass(jsValue);
+};
+
+sassport.utils.infer = (jsValue) => {
+  let result;
+
+  try {  
+    sass.renderSync({
+      data: `$_: ___(${jsValue});`,
+      functions: {
+        '___($value)': (value) => {
+          result = value;
+
+          return value;
+        }
+      }
+    });
+  } catch(e) {
+    return jsValue;
+  }
+
+  return result;
+};
 
 /**
  * Factory for Sassport modules.
@@ -134,7 +167,6 @@ class Sassport {
             : `sassport-assets/${module.getValue()}`;
           let assetPath = source.getValue();
 
-          console.log(this._remoteAssetPath, modulePath, assetPath);
           let assetUrl = `url(${path.join(this._remoteAssetPath, modulePath, assetPath)})`;
 
           return sass.types.String(assetUrl);

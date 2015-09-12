@@ -62,6 +62,45 @@ var sassport = function sassport() {
  * @type {Object}
  */
 sassport.utils = sassUtils;
+sassport.utils.toSass = function (jsValue) {
+  var infer = arguments[1] === undefined ? false : arguments[1];
+
+  console.log(jsValue, infer);
+  if (infer && typeof jsValue === 'string') {
+    jsValue = sassport.utils.infer(jsValue);
+  } else if (infer && typeof jsValue === 'object') {
+    jsValue = _lodash2['default'].mapValues(jsValue, function (subval) {
+      return sassport.utils.toSass(subval, infer);
+    });
+  } else if (infer && typeof jsValue === 'array') {
+    jsValue = _lodash2['default'].map(jsValue, function (item) {
+      return sassport.utils.toSass(item, infer);
+    });
+  }
+
+  return sassUtils.castToSass(jsValue);
+};
+
+sassport.utils.infer = function (jsValue) {
+  var result = undefined;
+
+  try {
+    _nodeSass2['default'].renderSync({
+      data: '$_: ___(' + jsValue + ');',
+      functions: {
+        '___($value)': function ___$value(value) {
+          result = value;
+
+          return value;
+        }
+      }
+    });
+  } catch (e) {
+    return jsValue;
+  }
+
+  return result;
+};
 
 /**
  * Factory for Sassport modules.
@@ -178,7 +217,6 @@ var Sassport = (function () {
           var modulePath = sassUtils.isNull(module) ? '' : 'sassport-assets/' + module.getValue();
           var assetPath = source.getValue();
 
-          console.log(this._remoteAssetPath, modulePath, assetPath);
           var assetUrl = 'url(' + _path2['default'].join(this._remoteAssetPath, modulePath, assetPath) + ')';
 
           return _nodeSass2['default'].types.String(assetUrl);
