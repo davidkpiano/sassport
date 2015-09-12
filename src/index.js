@@ -14,12 +14,12 @@ const sassUtils = require('node-sass-utils')(sass);
  * @param  {Object} renderer Sass renderer (node-sass).
  * @return {Object}          returns Sassport instance.
  */
-const sassport = function(modules = [], renderer = sass) {
+const sassport = function(modules = [], options = {}) {
   if (!Array.isArray(modules)) {
     modules = [modules];
   }
 
-  let sassportInstance = new Sassport(null, modules, renderer);
+  let sassportInstance = new Sassport(null, modules, options);
 
   return sassportInstance;
 };
@@ -81,14 +81,15 @@ sassport.module = function(name) {
 sassport.wrap = function(unwrappedFunc, options = {}) {
   options = _.defaults(options, {
     done: true,
-    quotes: false
+    quotes: false,
+    infer: false
   });
 
   return function(...args) {
     let outerDone = args.pop();
 
     let innerDone = function(result) {
-      outerDone(sassUtils.castToSass(result));
+      outerDone(sassport.utils.toSass(result, options.infer));
     };
 
     args = args.map((arg) => {
@@ -130,10 +131,15 @@ class Sassport {
    * @param  {Object} renderer Sass renderer (node-sass).
    * @return {Object}          instance of Sassport module.
    */
-  constructor(name, modules = [], renderer = sass) {
+  constructor(name, modules = [], options = {}) {
+    options = _.defaults(options, {
+      renderer: sass,
+      infer: false
+    });
+
     this.name = name;
     this.modules = modules;
-    this.sass = renderer;
+    this.sass = options.renderer;
 
     this._exportMeta = {
       contents: []
@@ -171,7 +177,7 @@ class Sassport {
 
           return sass.types.String(assetUrl);
         }.bind(this),
-        'require($path, $propPath: null)': function(file, propPath, done) {
+        'require($path, $propPath: null, $infer: false)': function(file, propPath, infer, done) {
           file = file.getValue();
           propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
 
@@ -181,7 +187,7 @@ class Sassport {
             data = _.get(data, propPath);
           }
 
-          return sassUtils.castToSass(data);
+          return sassport.utils.toSass(data, sassUtils.castToJs(infer));
         }.bind(this)
       },
       importer: this._importer,

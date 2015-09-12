@@ -46,13 +46,13 @@ var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
  */
 var sassport = function sassport() {
   var modules = arguments[0] === undefined ? [] : arguments[0];
-  var renderer = arguments[1] === undefined ? _nodeSass2['default'] : arguments[1];
+  var options = arguments[1] === undefined ? {} : arguments[1];
 
   if (!Array.isArray(modules)) {
     modules = [modules];
   }
 
-  var sassportInstance = new Sassport(null, modules, renderer);
+  var sassportInstance = new Sassport(null, modules, options);
 
   return sassportInstance;
 };
@@ -122,7 +122,8 @@ sassport.wrap = function (unwrappedFunc) {
 
   options = _lodash2['default'].defaults(options, {
     done: true,
-    quotes: false
+    quotes: false,
+    infer: false
   });
 
   return (function () {
@@ -133,7 +134,7 @@ sassport.wrap = function (unwrappedFunc) {
     var outerDone = args.pop();
 
     var innerDone = function innerDone(result) {
-      outerDone(sassUtils.castToSass(result));
+      outerDone(sassport.utils.toSass(result, options.infer));
     };
 
     args = args.map(function (arg) {
@@ -179,13 +180,18 @@ var Sassport = (function () {
     var _this = this;
 
     var modules = arguments[1] === undefined ? [] : arguments[1];
-    var renderer = arguments[2] === undefined ? _nodeSass2['default'] : arguments[2];
+    var options = arguments[2] === undefined ? {} : arguments[2];
 
     _classCallCheck(this, Sassport);
 
+    options = _lodash2['default'].defaults(options, {
+      renderer: _nodeSass2['default'],
+      infer: false
+    });
+
     this.name = name;
     this.modules = modules;
-    this.sass = renderer;
+    this.sass = options.renderer;
 
     this._exportMeta = {
       contents: []
@@ -221,7 +227,7 @@ var Sassport = (function () {
 
           return _nodeSass2['default'].types.String(assetUrl);
         }).bind(this),
-        'require($path, $propPath: null)': (function (file, propPath, done) {
+        'require($path, $propPath: null, $infer: false)': (function (file, propPath, infer, done) {
           file = file.getValue();
           propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
 
@@ -231,7 +237,7 @@ var Sassport = (function () {
             data = _lodash2['default'].get(data, propPath);
           }
 
-          return sassUtils.castToSass(data);
+          return sassport.utils.toSass(data, sassUtils.castToJs(infer));
         }).bind(this)
       },
       importer: this._importer,
