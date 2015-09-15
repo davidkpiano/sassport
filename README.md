@@ -10,19 +10,6 @@ JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript fun
 - [gulp-sassport](https://github.com/davidkpiano/gulp-sassport) (functional, work in progress)
 - More to come soon!
 
-## Inspiration
-Sassport was created to solve a few problems related to creating and maintaining Sass projects:
-- How can values be shared between JavaScript and Sass?
-- How can assets be easily included from 3rd-party modules, such as sprites, fonts, or other stylesheets?
-- Can remote asset URLs easily be managed, without hard-coding them in the stylesheets? (Yes!)
-- Can JavaScript functions be used inside Sass stylesheets? (Yes!)
-
-The last question is especially important - it means that you can communicate with JavaScript from Sass to do complex tasks such as creating sprite sheets and receive useful information from the completed task's return value, such as image dimensions or sprite locations. With `sassport.wrap()`, it's possible to wrap entire JavaScript libraries for use inside your Sass project.
-
-**Is this similar to [Sass Eyeglass](https://github.com/sass-eyeglass/eyeglass)?** Yes, and no. Both projects achieve similar goals, with different philosophies. Eyeglass is based on convention - 3rd-party Eyeglass modules must be configured to be _discoverable_ by Eyeglass via NPM. With Sassport, you _explicity_ state which Sassport plugins (modules) you're going to use, which can come from anywhere - NPM, Bower, or even your own project. This is very similar to how [PostCSS](https://github.com/postcss/postcss) works.
-
-Sassport is also agnostic and simple with assets - its only job is to copy assets from the source folder to your project's assets folder (inside the `sassport-assets` subdirectory). With this, you can wrap _any_ plugin to transform your assets (see [examples](#examples) below). Sassport is not meant to be another asset management tool - Gulp, Grunt, Broccoli, etc. already exist for that.
-
 ## Quick Start
 1. `npm install sassport --save-dev`
 2. Use `sassport` just like you would use [Node-Sass](https://github.com/sass/node-sass#usage) (see example below)
@@ -56,15 +43,36 @@ $colors: require('path/to/my-colors'); // Just like Node require()!
 
 .foo {
   color: map-get($colors, primary);
+  
+  &:hover {
+    // Sassport uses inferred Sass values, not strings!
+    color: lighten(map-get($colors, primary), 10%);
 }
 ```
 
 **Result:**
 ```css
 .foo {
-  color: #C0FF33;
+  color: #c0ff33;
+}
+
+.foo:hover {
+  color: #d0ff66;
 }
 ```
+
+## Inspiration
+Sassport was created to solve a few problems related to creating and maintaining Sass projects:
+- How can values be shared between JavaScript and Sass?
+- How can assets be easily included from 3rd-party modules, such as sprites, fonts, or other stylesheets?
+- Can remote asset URLs easily be managed, without hard-coding them in the stylesheets? (Yes!)
+- Can JavaScript functions be used inside Sass stylesheets? (Yes!)
+
+The last question is especially important - it means that you can communicate with JavaScript from Sass to do complex tasks such as creating sprite sheets and receive useful information from the completed task's return value, such as image dimensions or sprite locations. With `sassport.wrap()`, it's possible to wrap entire JavaScript libraries for use inside your Sass project.
+
+**Is this similar to [Sass Eyeglass](https://github.com/sass-eyeglass/eyeglass)?** Yes, and no. Both projects achieve similar goals, with different philosophies. Eyeglass is based on convention - 3rd-party Eyeglass modules must be configured to be _discoverable_ by Eyeglass via NPM. With Sassport, you _explicity_ state which Sassport plugins (modules) you're going to use, which can come from anywhere - NPM, Bower, or even your own project. This is very similar to how [PostCSS](https://github.com/postcss/postcss) works.
+
+Sassport is also agnostic and simple with assets - its only job is to copy assets from the source folder to your project's assets folder (inside the `sassport-assets` subdirectory). With this, you can wrap _any_ plugin to transform your assets (see [examples](#examples) below). Sassport is not meant to be another asset management tool - Gulp, Grunt, Broccoli, etc. already exist for that.
 
 ## Using Sassport modules
 Sassport modules can provide extra functionality and give you access to module-specific stylesheets. The syntax for including Sassport modules is very similar to [PostCSS' syntax](https://github.com/postcss/postcss#usage):
