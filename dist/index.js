@@ -49,8 +49,8 @@ var USE_INFERENCE = true;
  * @return {Object}          returns Sassport instance.
  */
 var sassport = function sassport() {
-  var modules = arguments[0] === undefined ? [] : arguments[0];
-  var options = arguments[1] === undefined ? {} : arguments[1];
+  var modules = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   if (!Array.isArray(modules)) {
     modules = [modules];
@@ -68,7 +68,7 @@ var sassport = function sassport() {
 sassport.utils = sassUtils;
 
 sassport.utils.toSass = function (jsValue) {
-  var infer = arguments[1] === undefined ? USE_INFERENCE : arguments[1];
+  var infer = arguments.length <= 1 || arguments[1] === undefined ? USE_INFERENCE : arguments[1];
 
   if (infer && jsValue && !(typeof jsValue.toSass === 'function')) {
     // Infer Sass value from JS string value.
@@ -77,16 +77,16 @@ sassport.utils.toSass = function (jsValue) {
 
       // Check each item in array for inferable values.
     } else if (_lodash2['default'].isArray(jsValue)) {
-      jsValue = _lodash2['default'].map(jsValue, function (item) {
-        return sassport.utils.toSass(item, infer);
-      });
+        jsValue = _lodash2['default'].map(jsValue, function (item) {
+          return sassport.utils.toSass(item, infer);
+        });
 
-      // Check each value in object for inferable values.
-    } else if (_lodash2['default'].isObject(jsValue)) {
-      jsValue = _lodash2['default'].mapValues(jsValue, function (subval) {
-        return sassport.utils.toSass(subval, infer);
-      });
-    }
+        // Check each value in object for inferable values.
+      } else if (_lodash2['default'].isObject(jsValue)) {
+          jsValue = _lodash2['default'].mapValues(jsValue, function (subval) {
+            return sassport.utils.toSass(subval, infer);
+          });
+        }
   }
 
   return sassUtils.castToSass(jsValue);
@@ -129,7 +129,7 @@ sassport.module = function (name) {
  * @return {Function}               Returns a wrapped function.
  */
 sassport.wrap = function (unwrappedFunc) {
-  var options = arguments[1] === undefined ? {} : arguments[1];
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   options = _lodash2['default'].defaults(options, {
     done: true,
@@ -190,8 +190,8 @@ var Sassport = (function () {
   function Sassport(name) {
     var _this = this;
 
-    var modules = arguments[1] === undefined ? [] : arguments[1];
-    var options = arguments[2] === undefined ? {} : arguments[2];
+    var modules = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
     _classCallCheck(this, Sassport);
 
@@ -271,7 +271,7 @@ var Sassport = (function () {
     value: function _beforeRender(options) {
       _lodash2['default'].extend(this.options, options);
 
-      this.options.importer = this._importer;
+      this.options.importer = options.importer || this._importer;
     }
   }, {
     key: 'render',
@@ -412,7 +412,7 @@ var Sassport = (function () {
     value: function assets(localPath) {
       var _this3 = this;
 
-      var remotePath = arguments[1] === undefined ? null : arguments[1];
+      var remotePath = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
       this._localPath = localPath;
       this._localAssetPath = _path2['default'].join(localPath, 'sassport-assets');

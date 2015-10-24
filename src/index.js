@@ -219,7 +219,7 @@ class Sassport {
   _beforeRender(options) {
     _.extend(this.options, options);
 
-    this.options.importer = this._importer;
+    this.options.importer = options.importer || this._importer;
   }
 
   render(options, emitter) {
