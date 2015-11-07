@@ -8,8 +8,6 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
-
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
@@ -32,11 +30,13 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _ncp = require('ncp');
-
 var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
+
+var _importer = require('./importer');
+
+var _importer2 = _interopRequireDefault(_importer);
 
 var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
 
@@ -204,6 +204,8 @@ var Sassport = (function () {
     this.modules = modules;
     this.sass = options.renderer;
 
+    this._importer = (0, _importer2['default'])(this);
+
     this._exportMeta = {
       contents: []
     };
@@ -322,65 +324,6 @@ var Sassport = (function () {
     key: 'getLocalAssetPath',
     value: function getLocalAssetPath() {
       return this._localAssetPath;
-    }
-  }, {
-    key: '_importer',
-    value: function _importer(url, prev, done) {
-      var _url$split = url.split('/');
-
-      var _url$split2 = _toArray(_url$split);
-
-      var moduleName = _url$split2[0];
-
-      var moduleImports = _url$split2.slice(1);
-
-      var module = null;
-      var exportMeta = undefined;
-      var importerData = {
-        contents: ''
-      };
-
-      module = _lodash2['default'].find(this.options.sassportModules, function (childModule) {
-        return childModule.name === moduleName;
-      });
-
-      if (!module) return prev;
-
-      exportMeta = module._exportMeta;
-
-      if (moduleImports.length) {
-        exportMeta = module._exports[moduleImports[0]];
-      }
-
-      if (exportMeta.file) {
-        if (!exportMeta.contents || !exportMeta.contents.length) {
-          importerData.file = exportMeta.file;
-
-          delete importerData.contents;
-        } else {
-          importerData.contents = _fs2['default'].readFileSync(exportMeta.file);
-        }
-      }
-
-      if (exportMeta.contents && exportMeta.contents.length) {
-        importerData.contents += exportMeta.contents.join('');
-      }
-
-      if (exportMeta.directory) {
-        (function () {
-          var assetDirPath = _path2['default'].join(module._localAssetPath, moduleName, moduleImports[0]);
-
-          (0, _mkdirp2['default'])(assetDirPath, function (err, res) {
-            if (err) console.error(err);
-
-            (0, _ncp.ncp)(exportMeta.directory, assetDirPath, function (err, res) {
-              done(importerData);
-            });
-          });
-        })();
-      } else {
-        done(importerData);
-      }
     }
   }, {
     key: 'variables',

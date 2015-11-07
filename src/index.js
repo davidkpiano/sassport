@@ -3,10 +3,11 @@ import sass from 'node-sass';
 import _ from 'lodash';
 import path from 'path';
 import fs from 'fs';
-import { ncp } from 'ncp';
 import mkdirp from 'mkdirp';
 
 const sassUtils = require('node-sass-utils')(sass);
+
+import createImporter from './importer';
 
 const USE_INFERENCE = true;
 
@@ -104,7 +105,7 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
     };
 
     args = args.map((arg) => {
-        var result = sassUtils.castToJs(arg);
+        let result = sassUtils.castToJs(arg);
 
         // Get unitless value from number
         if (result.value) result = result.value;
@@ -151,6 +152,8 @@ class Sassport {
     this.name = name;
     this.modules = modules;
     this.sass = options.renderer;
+
+    this._importer = createImporter(this);
 
     this._exportMeta = {
       contents: []
@@ -265,55 +268,6 @@ class Sassport {
 
   getLocalAssetPath() {
     return this._localAssetPath;
-  }
-
-  _importer(url, prev, done) {
-    let [ moduleName, ...moduleImports ] = url.split('/');
-    let module = null;
-    let exportMeta;
-    let importerData = {
-      contents: ''
-    };
-
-    module = _.find(this.options.sassportModules, (childModule) => {
-      return childModule.name === moduleName;
-    });
-
-    if (!module) return prev;
-
-    exportMeta = module._exportMeta;
-
-    if (moduleImports.length) {
-      exportMeta = module._exports[moduleImports[0]];
-    }
-
-    if (exportMeta.file) {
-      if (!exportMeta.contents || !exportMeta.contents.length) {
-        importerData.file = exportMeta.file;
-
-        delete importerData.contents;
-      } else {
-        importerData.contents = fs.readFileSync(exportMeta.file);
-      }
-    }
-
-    if (exportMeta.contents && exportMeta.contents.length) {
-      importerData.contents += exportMeta.contents.join('');
-    }
-
-    if (exportMeta.directory) {
-      let assetDirPath = path.join(module._localAssetPath, moduleName, moduleImports[0]);
-
-      mkdirp(assetDirPath, (err, res) => {
-        if (err) console.error(err);
-
-        ncp(exportMeta.directory, assetDirPath, (err, res) => {
-          done(importerData);
-        });
-      });
-    } else {
-      done(importerData);
-    }
   }
 
   variables(variableMap) {
