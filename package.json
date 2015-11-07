@@ -12,7 +12,7 @@
     "url": "git+https://github.com/davidkpiano/sassport.git"
   },
   "author": "David Khourshid <davidkpiano@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/davidkpiano/sassport/issues"
   },
@@ -29,7 +29,7 @@
     "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
     "ncp": "^2.0.0",
-    "node-sass": "^3.3.2",
+    "node-sass": "^3.4.1",
     "node-sass-utils": "^1.1.2"
   }
 }
