@@ -253,6 +253,7 @@ var Sassport = (function () {
         return sassport.utils.toSass(data, sassUtils.castToJs(infer));
       }).bind(this)),
       importer: this._importer,
+      includePaths: ['node_modules'],
       sassportModules: modules // carried over to node-sass
     };
 

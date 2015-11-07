@@ -205,6 +205,7 @@ class Sassport {
         }.bind(this)
       },
       importer: this._importer,
+      includePaths: ['node_modules'],
       sassportModules: modules // carried over to node-sass
     };
 
