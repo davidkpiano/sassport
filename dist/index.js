@@ -272,9 +272,10 @@ var Sassport = (function () {
   }, {
     key: '_beforeRender',
     value: function _beforeRender(options) {
-      _lodash2['default'].extend(this.options, options);
-
       this.options.importer = options.importer || this._importer;
+      this.options.includePaths = this.options.includePaths.concat(options.includePaths || []);
+
+      _lodash2['default'].extend(this.options, options);
     }
   }, {
     key: 'render',

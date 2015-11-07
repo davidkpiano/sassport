@@ -221,9 +221,11 @@ class Sassport {
   }
 
   _beforeRender(options) {
-    _.extend(this.options, options);
-
     this.options.importer = options.importer || this._importer;
+    this.options.includePaths = this.options.includePaths
+      .concat(options.includePaths || []);
+
+    _.extend(this.options, options);
   }
 
   render(options, emitter) {
