@@ -146,7 +146,14 @@ class Sassport {
   constructor(name, modules = [], options = {}) {
     options = _.defaults(options, {
       renderer: sass,
-      infer: USE_INFERENCE
+      infer: USE_INFERENCE,
+      onRequire: (filePath) => {
+        try {
+          return require(path.resolve(this._localPath, filePath));
+        } catch (e) {
+          console.error(e);
+        }
+      }
     });
 
     this.name = name;
@@ -166,6 +173,8 @@ class Sassport {
     this._localPath = path.resolve('./');
     this._localAssetPath = null;
     this._remoteAssetPath = null;
+
+    this._onRequire = options.onRequire.bind(this);
 
     this.options = {
       functions: {
@@ -195,7 +204,7 @@ class Sassport {
           file = file.getValue();
           propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
 
-          let data = require(path.resolve(this._localPath, file));
+          let data = this._onRequire(path.resolve(this._localPath, file));
 
           if (propPath) {
             data = _.get(data, propPath);

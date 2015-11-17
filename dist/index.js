@@ -197,7 +197,14 @@ var Sassport = (function () {
 
     options = _lodash2['default'].defaults(options, {
       renderer: _nodeSass2['default'],
-      infer: USE_INFERENCE
+      infer: USE_INFERENCE,
+      onRequire: function onRequire(filePath) {
+        try {
+          return require(_path2['default'].resolve(_this._localPath, filePath));
+        } catch (e) {
+          console.error(e);
+        }
+      }
     });
 
     this.name = name;
@@ -217,6 +224,8 @@ var Sassport = (function () {
     this._localPath = _path2['default'].resolve('./');
     this._localAssetPath = null;
     this._remoteAssetPath = null;
+
+    this._onRequire = options.onRequire.bind(this);
 
     this.options = {
       functions: _defineProperty({
@@ -244,7 +253,7 @@ var Sassport = (function () {
         file = file.getValue();
         propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
 
-        var data = require(_path2['default'].resolve(this._localPath, file));
+        var data = this._onRequire(_path2['default'].resolve(this._localPath, file));
 
         if (propPath) {
           data = _lodash2['default'].get(data, propPath);
