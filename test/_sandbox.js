@@ -9,7 +9,7 @@ sassport()
     })
   })
   .render({
-    data: 'test { path: inspect(size-of(asset-path("sassport-sm.png"))) }'
+    data: 'test { path: 32; }'
   }, function(err, res) {
     console.error(err);
     console.log(res.css.toString());

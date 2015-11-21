@@ -7,8 +7,6 @@ import mkdirp from 'mkdirp';
 
 const sassUtils = require('node-sass-utils')(sass);
 
-import createImporter from './importer';
-
 const USE_INFERENCE = true;
 
 /**
@@ -160,8 +158,6 @@ class Sassport {
     this.modules = modules;
     this.sass = options.renderer;
 
-    this._importer = createImporter(this);
-
     this._exportMeta = {
       contents: []
     };
@@ -178,28 +174,6 @@ class Sassport {
 
     this.options = {
       functions: {
-        'asset-path($source, $module: null)': function(source, module) {
-          let modulePath = sassUtils.isNull(module) ? '' : module.getValue();
-          let assetPath = source.getValue();
-          let localPath = modulePath ? this._localAssetPath : this._localPath;
-          let assetUrl = `${path.join(localPath, modulePath, assetPath)}`;
-
-          return sass.types.String(assetUrl);
-        }.bind(this),
-        'asset-url($source, $module: null)': function(source, module) {
-          if (!this._remoteAssetPath) {
-            throw 'Remote asset path not specified.\n\nSpecify the remote path with `sassport([...]).assets(localPath, remotePath)`.';
-          }
-
-          let modulePath = sassUtils.isNull(module)
-            ? ''
-            : `sassport-assets/${module.getValue()}`;
-          let assetPath = source.getValue();
-
-          let assetUrl = `url(${path.join(this._remoteAssetPath, modulePath, assetPath)})`;
-
-          return sass.types.String(assetUrl);
-        }.bind(this),
         [`require($path, $propPath: null, $infer: ${options.infer})`]: function(file, propPath, infer, done) {
           file = file.getValue();
           propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
@@ -213,7 +187,6 @@ class Sassport {
           return sassport.utils.toSass(data, sassUtils.castToJs(infer));
         }.bind(this)
       },
-      importer: this._importer,
       includePaths: ['node_modules'],
       sassportModules: modules // carried over to node-sass
     };
@@ -230,7 +203,6 @@ class Sassport {
   }
 
   _beforeRender(options) {
-    this.options.importer = options.importer || this._importer;
     this.options.includePaths = this.options.includePaths
       .concat(options.includePaths || []);
 
@@ -255,33 +227,6 @@ class Sassport {
     return this;
   }
 
-  exports(exportMap) {
-    for (let exportKey in exportMap) {
-      let exportPath = exportMap[exportKey];
-      let exportMeta = {
-        file: null,
-        directory: null,
-        content: null
-      };
-
-      if (fs.lstatSync(exportPath).isDirectory()) {
-        exportMeta.directory = exportPath;
-
-        delete exportMeta.file;
-      } else {
-        exportMeta.file = exportPath;
-      }
-
-      this._exports[exportKey] = exportMeta;
-    }
-
-    return this;
-  }
-
-  getLocalAssetPath() {
-    return this._localAssetPath;
-  }
-
   variables(variableMap) {
     for (let key in variableMap) {
       let value = variableMap[key];
@@ -301,24 +246,6 @@ class Sassport {
 
       this._exportMeta.contents.push(renderedRuleset);
     }.bind(this));
-
-    return this;
-  }
-
-  assets(localPath, remotePath = null) {
-    this._localPath = localPath;
-    this._localAssetPath = path.join(localPath, 'sassport-assets');
-    this._remoteAssetPath = remotePath;
-
-    // Create the local asset path directory
-    mkdirp.sync(this._localAssetPath);
-
-    // Update the path information for each module
-    this.modules.map((module) => {
-      module._localPath = this._localPath;
-      module._localAssetPath = this._localAssetPath;
-      module._remoteAssetPath = this._remoteAssetPath;
-    });
 
     return this;
   }

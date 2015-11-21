@@ -31,8 +31,6 @@ describe('Sassport.variables', function() {
   describe('standard JS value types', function() {
     var testModule = sassport.module('test');
 
-    console.log(testModule._localPath);
-
     testModule.variables({
       '$string': 'foobar',
       '$number': 123.456,
