@@ -96,27 +96,27 @@ describe('Sassport.assets', function() {
     });
   });
 
-  describe('Sass asset-path() function', function() {
+  describe('Sass resolve-path() function', function() {
     var sassportModule = sassport()
       .assets(localAssetPath);
 
     it('should return the correct local asset path', function(done) {
       assertRenderSync(
         sassportModule,
-        'test { own-asset: asset-path("foo.png"); module-asset: asset-path("bar.png", "test"); }',
+        'test { own-asset: resolve-path("foo.png"); module-asset: resolve-path("bar.png", "test"); }',
         'test{own-asset:' + localAssetPath + '/foo.png;module-asset:' + localAssetPath + '/sassport-assets/test/bar.png}\n',
         done);
     });
   });
 
-  describe('Sass asset-url() function', function() {
+  describe('Sass resolve-url() function', function() {
     var sassportModule = sassport()
       .assets(localAssetPath, remoteAssetPath);
 
     it('should return the correct remote asset URL', function(done) {
       assertRenderSync(
         sassportModule,
-        'test { own-asset: asset-url("foo.png"); module-asset: asset-url("bar.png", "test"); }',
+        'test { own-asset: resolve-url("foo.png"); module-asset: resolve-url("bar.png", "test"); }',
         'test{own-asset:url(' + remoteAssetPath + '/foo.png);module-asset:url(' + remoteAssetPath + '/sassport-assets/test/bar.png)}\n',
         done);
     });

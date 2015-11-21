@@ -229,7 +229,7 @@ var Sassport = (function () {
 
     this.options = {
       functions: _defineProperty({
-        'asset-path($source, $module: null)': (function (source, module) {
+        'resolve-path($source, $module: null)': (function (source, module) {
           var modulePath = sassUtils.isNull(module) ? '' : module.getValue();
           var assetPath = source.getValue();
           var localPath = modulePath ? this._localAssetPath : this._localPath;
@@ -237,7 +237,7 @@ var Sassport = (function () {
 
           return _nodeSass2['default'].types.String(assetUrl);
         }).bind(this),
-        'asset-url($source, $module: null)': (function (source, module) {
+        'resolve-url($source, $module: null)': (function (source, module) {
           if (!this._remoteAssetPath) {
             throw 'Remote asset path not specified.\n\nSpecify the remote path with `sassport([...]).assets(localPath, remotePath)`.';
           }
