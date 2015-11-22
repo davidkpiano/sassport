@@ -38,7 +38,9 @@ var _importer = require('./importer');
 
 var _importer2 = _interopRequireDefault(_importer);
 
-var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
+var _utils = require('./utils');
+
+var _utils2 = _interopRequireDefault(_utils);
 
 var USE_INFERENCE = true;
 
@@ -59,58 +61,6 @@ var sassport = function sassport() {
   var sassportInstance = new Sassport(null, modules, options);
 
   return sassportInstance;
-};
-
-/**
- * Collection of utilities from 'node-sass-utils'.
- * @type {Object}
- */
-sassport.utils = sassUtils;
-
-sassport.utils.toSass = function (jsValue) {
-  var infer = arguments.length <= 1 || arguments[1] === undefined ? USE_INFERENCE : arguments[1];
-
-  if (infer && jsValue && !(typeof jsValue.toSass === 'function')) {
-    // Infer Sass value from JS string value.
-    if (_lodash2['default'].isString(jsValue)) {
-      jsValue = sassport.utils.infer(jsValue);
-
-      // Check each item in array for inferable values.
-    } else if (_lodash2['default'].isArray(jsValue)) {
-        jsValue = _lodash2['default'].map(jsValue, function (item) {
-          return sassport.utils.toSass(item, infer);
-        });
-
-        // Check each value in object for inferable values.
-      } else if (_lodash2['default'].isObject(jsValue)) {
-          jsValue = _lodash2['default'].mapValues(jsValue, function (subval) {
-            return sassport.utils.toSass(subval, infer);
-          });
-        }
-  }
-
-  return sassUtils.castToSass(jsValue);
-};
-
-sassport.utils.infer = function (jsValue) {
-  var result = undefined;
-
-  try {
-    _nodeSass2['default'].renderSync({
-      data: '$_: ___((' + jsValue + '));',
-      functions: {
-        '___($value)': function ___$value(value) {
-          result = value;
-
-          return value;
-        }
-      }
-    });
-  } catch (e) {
-    return jsValue;
-  }
-
-  return result;
 };
 
 /**
@@ -145,11 +95,11 @@ sassport.wrap = function (unwrappedFunc) {
     var outerDone = args.pop();
 
     var innerDone = function innerDone(result) {
-      outerDone(sassport.utils.toSass(result, options.infer));
+      outerDone(_utils2['default'].toSass(result, options.infer));
     };
 
     args = args.map(function (arg) {
-      var result = sassUtils.castToJs(arg);
+      var result = _utils2['default'].castToJs(arg);
 
       // Get unitless value from number
       if (result.value) result = result.value;
@@ -230,7 +180,7 @@ var Sassport = (function () {
     this.options = {
       functions: _defineProperty({
         'resolve-path($source, $module: null)': (function (source, module) {
-          var modulePath = sassUtils.isNull(module) ? '' : module.getValue();
+          var modulePath = _utils2['default'].isNull(module) ? '' : module.getValue();
           var assetPath = source.getValue();
           var localPath = modulePath ? this._localAssetPath : this._localPath;
           var assetUrl = '' + _path2['default'].join(localPath, modulePath, assetPath);
@@ -242,7 +192,7 @@ var Sassport = (function () {
             throw 'Remote asset path not specified.\n\nSpecify the remote path with `sassport([...]).assets(localPath, remotePath)`.';
           }
 
-          var modulePath = sassUtils.isNull(module) ? '' : 'sassport-assets/' + module.getValue();
+          var modulePath = _utils2['default'].isNull(module) ? '' : 'sassport-assets/' + module.getValue();
           var assetPath = source.getValue();
 
           var assetUrl = 'url(' + _path2['default'].join(this._remoteAssetPath, modulePath, assetPath) + ')';
@@ -251,7 +201,7 @@ var Sassport = (function () {
         }).bind(this)
       }, 'require($path, $propPath: null, $infer: ' + options.infer + ')', (function (file, propPath, infer, done) {
         file = file.getValue();
-        propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
+        propPath = _utils2['default'].isNull(propPath) ? false : propPath.getValue();
 
         var data = this._onRequire(_path2['default'].resolve(this._localPath, file));
 
@@ -259,7 +209,7 @@ var Sassport = (function () {
           data = _lodash2['default'].get(data, propPath);
         }
 
-        return sassport.utils.toSass(data, sassUtils.castToJs(infer));
+        return _utils2['default'].toSass(data, _utils2['default'].castToJs(infer));
       }).bind(this)),
       importer: this._importer,
       includePaths: ['node_modules'],
@@ -341,7 +291,7 @@ var Sassport = (function () {
     value: function variables(variableMap) {
       for (var key in variableMap) {
         var value = variableMap[key];
-        var sassValue = sassUtils.sassString(sassUtils.castToSass(value));
+        var sassValue = _utils2['default'].sassString(_utils2['default'].castToSass(value));
 
         this._exportMeta.contents.push(key + ': ' + sassValue + ';');
       }

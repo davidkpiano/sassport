@@ -5,9 +5,8 @@ import path from 'path';
 import fs from 'fs';
 import mkdirp from 'mkdirp';
 
-const sassUtils = require('node-sass-utils')(sass);
-
 import createImporter from './importer';
+import utils from './utils';
 
 const USE_INFERENCE = true;
 
@@ -25,54 +24,6 @@ const sassport = function(modules = [], options = {}) {
   let sassportInstance = new Sassport(null, modules, options);
 
   return sassportInstance;
-};
-
-/**
- * Collection of utilities from 'node-sass-utils'.
- * @type {Object}
- */
-sassport.utils = sassUtils;
-
-sassport.utils.toSass = (jsValue, infer = USE_INFERENCE) => {
-  if (infer && jsValue && !(typeof jsValue.toSass === 'function')) {  
-    // Infer Sass value from JS string value.
-    if (_.isString(jsValue)) {
-      jsValue = sassport.utils.infer(jsValue);
-
-    // Check each item in array for inferable values.
-    } else if (_.isArray(jsValue)) {
-      jsValue = _.map(jsValue, (item) => 
-        sassport.utils.toSass(item, infer));
-
-    // Check each value in object for inferable values.
-    } else if (_.isObject(jsValue)) {
-      jsValue = _.mapValues(jsValue, (subval) => 
-        sassport.utils.toSass(subval, infer));
-    }
-  }
-
-  return sassUtils.castToSass(jsValue);
-};
-
-sassport.utils.infer = (jsValue) => {
-  let result;
-
-  try {  
-    sass.renderSync({
-      data: `$_: ___((${jsValue}));`,
-      functions: {
-        '___($value)': (value) => {
-          result = value;
-
-          return value;
-        }
-      }
-    });
-  } catch(e) {
-    return jsValue;
-  }
-
-  return result;
 };
 
 /**
@@ -101,11 +52,11 @@ sassport.wrap = function(unwrappedFunc, options = {}) {
     let outerDone = args.pop();
 
     let innerDone = function(result) {
-      outerDone(sassport.utils.toSass(result, options.infer));
+      outerDone(utils.toSass(result, options.infer));
     };
 
     args = args.map((arg) => {
-        let result = sassUtils.castToJs(arg);
+        let result = utils.castToJs(arg);
 
         // Get unitless value from number
         if (result.value) result = result.value;
@@ -179,7 +130,7 @@ class Sassport {
     this.options = {
       functions: {
         'resolve-path($source, $module: null)': function(source, module) {
-          let modulePath = sassUtils.isNull(module) ? '' : module.getValue();
+          let modulePath = utils.isNull(module) ? '' : module.getValue();
           let assetPath = source.getValue();
           let localPath = modulePath ? this._localAssetPath : this._localPath;
           let assetUrl = `${path.join(localPath, modulePath, assetPath)}`;
@@ -191,7 +142,7 @@ class Sassport {
             throw 'Remote asset path not specified.\n\nSpecify the remote path with `sassport([...]).assets(localPath, remotePath)`.';
           }
 
-          let modulePath = sassUtils.isNull(module)
+          let modulePath = utils.isNull(module)
             ? ''
             : `sassport-assets/${module.getValue()}`;
           let assetPath = source.getValue();
@@ -202,7 +153,7 @@ class Sassport {
         }.bind(this),
         [`require($path, $propPath: null, $infer: ${options.infer})`]: function(file, propPath, infer, done) {
           file = file.getValue();
-          propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
+          propPath = utils.isNull(propPath) ? false : propPath.getValue();
 
           let data = this._onRequire(path.resolve(this._localPath, file));
 
@@ -210,7 +161,7 @@ class Sassport {
             data = _.get(data, propPath);
           }
 
-          return sassport.utils.toSass(data, sassUtils.castToJs(infer));
+          return utils.toSass(data, utils.castToJs(infer));
         }.bind(this)
       },
       importer: this._importer,
@@ -285,7 +236,7 @@ class Sassport {
   variables(variableMap) {
     for (let key in variableMap) {
       let value = variableMap[key];
-      let sassValue = sassUtils.sassString(sassUtils.castToSass(value));
+      let sassValue = utils.sassString(utils.castToSass(value));
 
       this._exportMeta.contents.push(`${key}: ${sassValue};`)
     }
