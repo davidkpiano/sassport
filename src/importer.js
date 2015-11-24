@@ -3,9 +3,23 @@ import path from 'path';
 import mkdirp from 'mkdirp';
 import { ncp } from 'ncp';
 import fs from 'fs';
+import parser from './utils/parser';
+import resolve from './utils/resolve';
 
 export default function createImporter(sassportModule) {
-  return (url, prev, done) => {  
+  return (url, prev, done) => {
+    let [resolvedUrl, ...transformers] = url.split('!');
+    let filePath;
+
+    if (transformers.length) {
+      filePath = resolve(path.dirname(prev), resolvedUrl)[0].absPath;
+
+      return {
+        contents: parser(fs.readFileSync(filePath, {encoding: 'UTF-8'}))
+      }
+    }
+
+
     let [ moduleName, ...moduleImports ] = url.split('/');
     let spModule = null;
     let exportMeta;

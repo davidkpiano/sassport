@@ -25,4 +25,18 @@ describe('Sassport custom importer', function() {
       ));
     });
   });
+
+  it('should handle transformers', (done) => {
+    let sassportModule = sassport([]);
+
+    sassportModule.render({
+      file: './test/scss/index.scss',
+      outputStyle: 'compressed'
+    }, (err, result) => {
+      done(assert.equal(
+        result.css.toString(),
+        '.foo{color:black}.foo{color:green}.bar{color:blue}\n'
+      ));
+    })
+  })
 });
