@@ -130,4 +130,16 @@ describe('Sassport.functions', function() {
         done);
     });
   });
+
+  describe('post-defined functions', (done) => {
+    let sassportModule = sassport.module('test').functions({
+      'foo($bar)': function(bar) {
+        sassportModule['post()'] = function() {
+          return sass.types.String('post-defined');
+        }
+
+        return sass.types.String('test ' + bar.getValue());
+      }
+    });
+  });
 });

@@ -8,8 +8,6 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
@@ -41,6 +39,10 @@ var _importer2 = _interopRequireDefault(_importer);
 var _utils = require('./utils');
 
 var _utils2 = _interopRequireDefault(_utils);
+
+var _utilsWrap = require('./utils/wrap');
+
+var _utilsWrap2 = _interopRequireDefault(_utilsWrap);
 
 var USE_INFERENCE = true;
 
@@ -78,55 +80,7 @@ sassport.module = function (name) {
  * @param  {Object} options       (optional) options to pass into the wrapped function.
  * @return {Function}               Returns a wrapped function.
  */
-sassport.wrap = function (unwrappedFunc) {
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-  options = _lodash2['default'].defaults(options, {
-    done: true,
-    quotes: false,
-    infer: USE_INFERENCE
-  });
-
-  return (function () {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    var outerDone = args.pop();
-
-    var innerDone = function innerDone(result) {
-      outerDone(_utils2['default'].toSass(result, options.infer));
-    };
-
-    args = args.map(function (arg) {
-      var result = _utils2['default'].castToJs(arg);
-
-      // Get unitless value from number
-      if (result.value) result = result.value;
-
-      // Get simple get/set interface from map
-      if (result.coerce) result = result.coerce;
-
-      return result;
-    });
-
-    // Add 'done' callback if options.done is set true
-    if (options.done) {
-      args.push(innerDone);
-    }
-
-    var result = unwrappedFunc.apply(undefined, _toConsumableArray(args));
-
-    // Quote string if options.quotes is set true
-    if (options.quotes && _lodash2['default'].isString(result)) {
-      result = '\'"' + result + '"\'';
-    }
-
-    if (typeof result !== 'undefined') {
-      innerDone(result);
-    }
-  }).bind(this);
-};
+sassport.wrap = _utilsWrap2['default'];
 
 var Sassport = (function () {
   /**

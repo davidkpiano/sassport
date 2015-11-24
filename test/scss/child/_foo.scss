@@ -1,0 +1,7 @@
+@import 'deep/baz!foo';
+
+.foo {
+  color: green;
+
+  @extend %CLASS-baz;
+}

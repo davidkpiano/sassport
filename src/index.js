@@ -7,6 +7,7 @@ import mkdirp from 'mkdirp';
 
 import createImporter from './importer';
 import utils from './utils';
+import wrap from './utils/wrap';
 
 const USE_INFERENCE = true;
 
@@ -41,49 +42,7 @@ sassport.module = function(name) {
  * @param  {Object} options       (optional) options to pass into the wrapped function.
  * @return {Function}               Returns a wrapped function.
  */
-sassport.wrap = function(unwrappedFunc, options = {}) {
-  options = _.defaults(options, {
-    done: true,
-    quotes: false,
-    infer: USE_INFERENCE
-  });
-
-  return function(...args) {
-    let outerDone = args.pop();
-
-    let innerDone = function(result) {
-      outerDone(utils.toSass(result, options.infer));
-    };
-
-    args = args.map((arg) => {
-        let result = utils.castToJs(arg);
-
-        // Get unitless value from number
-        if (result.value) result = result.value;
-
-        // Get simple get/set interface from map
-        if (result.coerce) result = result.coerce;
-
-        return result;
-      });
-
-    // Add 'done' callback if options.done is set true
-    if (options.done) {
-      args.push(innerDone);
-    }
-
-    let result = unwrappedFunc(...args);
-
-    // Quote string if options.quotes is set true
-    if (options.quotes && _.isString(result)) {
-      result = `'"${result}"'`;
-    }
-
-    if (typeof result !== 'undefined') {
-      innerDone(result);
-    }
-  }.bind(this);
-}; 
+sassport.wrap = wrap;
 
 
 class Sassport {
