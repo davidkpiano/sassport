@@ -204,6 +204,10 @@ You can now specify **custom loaders for `@import` files** by separating them wi
 
 ```js
 var sassport = require('sassport');
+
+// The Sassport reference module provides:
+// - a !reference loader
+// - a reference() Sass function
 var referenceModule = require('sassport/modules/reference');
 
 sassport([ referenceModule ])
@@ -212,22 +216,25 @@ sassport([ referenceModule ])
 
 ```scss
 // In path/to/_foo.scss:
-.button {
-  background: blue;
-  color: white;
+@for $i from 1 through 10 {
+  .col-#{$i} {
+    display: block;
+    width: percentage($i / 10);
+  }
 }
 
 // In main.scss:
 @import 'path/to/foo !reference';
 
-.my-button {
-  @extend #{reference('.button')};
+.my-thing {
+  @extend #{reference('.col-4')};
 }
 
-// Result:
-.my-button {
-  background: blue;
-  color: white;
+// Result CSS:
+// Notice how the other column selectors never get output.
+.my-thing {
+  display: block;
+  width: 40%;
 }
 ```
 
