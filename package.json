@@ -29,6 +29,7 @@
     "should": "^7.0.1"
   },
   "dependencies": {
+    "gonzales-pe": "^3.2.1",
     "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
     "ncp": "^2.0.0",

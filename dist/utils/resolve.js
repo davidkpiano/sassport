@@ -89,8 +89,6 @@ function resolve(rootPath, filePath) {
     }
   });
 
-  console.log('resolved:', resolved);
-
   return resolved;
 }
 
