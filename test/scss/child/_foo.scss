@@ -1,7 +1,7 @@
-@import 'deep/baz!foo';
+@import 'deep/baz !reference';
 
 .foo {
   color: green;
 
-  @extend %CLASS-baz;
+  @extend #{reference('.baz')};
 }

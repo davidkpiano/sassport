@@ -1,22 +1,24 @@
 import find from 'lodash/collection/find';
+import difference from 'lodash/array/difference';
+import reduce from 'lodash/collection/reduce';
 import path from 'path';
 import mkdirp from 'mkdirp';
 import { ncp } from 'ncp';
 import fs from 'fs';
-import parser from './utils/parser';
 import resolve from './utils/resolve';
 
 export default function createImporter(sassportModule) {
   return (url, prev, done) => {
-    let [resolvedUrl, ...transformers] = url.split('!');
-    let filePath;
+    let [resolvedUrl, ...loaderKeys] = url.split('!')
+      .map((part) => part.trim());
 
-    if (transformers.length) {
-      filePath = resolve(path.dirname(prev), resolvedUrl)[0].absPath;
+    if (loaderKeys.length) {
+      let importPath = resolve(
+        path.dirname(prev),
+        resolvedUrl
+      )[0].absPath;
 
-      return {
-        contents: parser(fs.readFileSync(filePath, {encoding: 'UTF-8'}))
-      }
+      return transform(importPath, loaderKeys, sassportModule);
     }
 
 
@@ -70,5 +72,34 @@ export default function createImporter(sassportModule) {
     } else {
       done(importerData);
     }
+  }
+}
+
+function transform(importPath, loaderKeys, spModule) {
+  let loaders = spModule._loaders;
+  let missingLoaders = difference(loaderKeys, Object.keys(loaders));
+
+  if (missingLoaders.length) {
+    throw new Error(`These loaders are missing:
+      ${missingLoaders.join(', ')}`);
+  } 
+
+  let contents = fs.readFileSync(importPath, {
+      encoding: 'UTF-8'
+    });
+
+  let transformedContents = reduce(loaderKeys, (contents, loader) => {
+    try {
+      return loaders[loader](contents);
+    } catch (err) {
+      throw new Error(`The "${loader}" failed when trying to transform this file:
+        ${importPath}
+
+        ${err}`);
+    }
+  }, contents);
+
+  return {
+    contents: transformedContents
   }
 }

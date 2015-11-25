@@ -44,8 +44,6 @@ var _utilsWrap = require('./utils/wrap');
 
 var _utilsWrap2 = _interopRequireDefault(_utilsWrap);
 
-var USE_INFERENCE = true;
-
 /**
  * Factory for Sassport instances.
  * @param  {Array}  modules  array of modules to include in instance.
@@ -101,7 +99,7 @@ var Sassport = (function () {
 
     options = _lodash2['default'].defaults(options, {
       renderer: _nodeSass2['default'],
-      infer: USE_INFERENCE,
+      infer: true,
       onRequire: function onRequire(filePath) {
         try {
           return require(_path2['default'].resolve(_this._localPath, filePath));
@@ -123,7 +121,7 @@ var Sassport = (function () {
 
     this._exports = {};
 
-    this._mixins = {};
+    this._loaders = {};
 
     this._localPath = _path2['default'].resolve('./');
     this._localAssetPath = null;
@@ -170,8 +168,10 @@ var Sassport = (function () {
       sassportModules: modules // carried over to node-sass
     };
 
-    this.modules.map(function (module) {
-      _lodash2['default'].merge(_this.options, module.options);
+    this.modules.map(function (spModule) {
+      _lodash2['default'].merge(_this.options, spModule.options);
+
+      _lodash2['default'].merge(_this._loaders, spModule._loaders);
     });
   }
 
@@ -208,6 +208,13 @@ var Sassport = (function () {
     key: 'functions',
     value: function functions(functionMap) {
       _lodash2['default'].extend(this.options.functions, functionMap);
+
+      return this;
+    }
+  }, {
+    key: 'loaders',
+    value: function loaders(loaderMap) {
+      _lodash2['default'].extend(this._loaders, loaderMap);
 
       return this;
     }
@@ -253,22 +260,9 @@ var Sassport = (function () {
       return this;
     }
   }, {
-    key: 'rulesets',
-    value: function rulesets(_rulesets) {
-      var _this2 = this;
-
-      _rulesets.map((function (ruleset) {
-        var renderedRuleset = _this2.sass.renderSync({ data: ruleset }).css.toString();
-
-        _this2._exportMeta.contents.push(renderedRuleset);
-      }).bind(this));
-
-      return this;
-    }
-  }, {
     key: 'assets',
     value: function assets(localPath) {
-      var _this3 = this;
+      var _this2 = this;
 
       var remotePath = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
@@ -281,9 +275,9 @@ var Sassport = (function () {
 
       // Update the path information for each module
       this.modules.map(function (module) {
-        module._localPath = _this3._localPath;
-        module._localAssetPath = _this3._localAssetPath;
-        module._remoteAssetPath = _this3._remoteAssetPath;
+        module._localPath = _this2._localPath;
+        module._localAssetPath = _this2._localAssetPath;
+        module._remoteAssetPath = _this2._remoteAssetPath;
       });
 
       return this;

@@ -13,6 +13,14 @@ var _lodashCollectionFind = require('lodash/collection/find');
 
 var _lodashCollectionFind2 = _interopRequireDefault(_lodashCollectionFind);
 
+var _lodashArrayDifference = require('lodash/array/difference');
+
+var _lodashArrayDifference2 = _interopRequireDefault(_lodashArrayDifference);
+
+var _lodashCollectionReduce = require('lodash/collection/reduce');
+
+var _lodashCollectionReduce2 = _interopRequireDefault(_lodashCollectionReduce);
+
 var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
@@ -27,41 +35,35 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _utilsParser = require('./utils/parser');
-
-var _utilsParser2 = _interopRequireDefault(_utilsParser);
-
 var _utilsResolve = require('./utils/resolve');
 
 var _utilsResolve2 = _interopRequireDefault(_utilsResolve);
 
 function createImporter(sassportModule) {
   return function (url, prev, done) {
-    var _url$split = url.split('!');
+    var _url$split$map = url.split('!').map(function (part) {
+      return part.trim();
+    });
+
+    var _url$split$map2 = _toArray(_url$split$map);
+
+    var resolvedUrl = _url$split$map2[0];
+
+    var loaderKeys = _url$split$map2.slice(1);
+
+    if (loaderKeys.length) {
+      var importPath = (0, _utilsResolve2['default'])(_path2['default'].dirname(prev), resolvedUrl)[0].absPath;
+
+      return transform(importPath, loaderKeys, sassportModule);
+    }
+
+    var _url$split = url.split('/');
 
     var _url$split2 = _toArray(_url$split);
 
-    var resolvedUrl = _url$split2[0];
+    var moduleName = _url$split2[0];
 
-    var transformers = _url$split2.slice(1);
-
-    var filePath = undefined;
-
-    if (transformers.length) {
-      filePath = (0, _utilsResolve2['default'])(_path2['default'].dirname(prev), resolvedUrl)[0].absPath;
-
-      return {
-        contents: (0, _utilsParser2['default'])(_fs2['default'].readFileSync(filePath, { encoding: 'UTF-8' }))
-      };
-    }
-
-    var _url$split3 = url.split('/');
-
-    var _url$split32 = _toArray(_url$split3);
-
-    var moduleName = _url$split32[0];
-
-    var moduleImports = _url$split32.slice(1);
+    var moduleImports = _url$split2.slice(1);
 
     var spModule = null;
     var exportMeta = undefined;
@@ -117,4 +119,28 @@ function createImporter(sassportModule) {
   };
 }
 
+function transform(importPath, loaderKeys, spModule) {
+  var loaders = spModule._loaders;
+  var missingLoaders = (0, _lodashArrayDifference2['default'])(loaderKeys, Object.keys(loaders));
+
+  if (missingLoaders.length) {
+    throw new Error('These loaders are missing:\n      ' + missingLoaders.join(', '));
+  }
+
+  var contents = _fs2['default'].readFileSync(importPath, {
+    encoding: 'UTF-8'
+  });
+
+  var transformedContents = (0, _lodashCollectionReduce2['default'])(loaderKeys, function (contents, loader) {
+    try {
+      return loaders[loader](contents);
+    } catch (err) {
+      throw new Error('The "' + loader + '" failed when trying to transform this file:\n        ' + importPath + '\n\n        ' + err);
+    }
+  }, contents);
+
+  return {
+    contents: transformedContents
+  };
+}
 module.exports = exports['default'];

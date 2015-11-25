@@ -9,8 +9,6 @@ import createImporter from './importer';
 import utils from './utils';
 import wrap from './utils/wrap';
 
-const USE_INFERENCE = true;
-
 /**
  * Factory for Sassport instances.
  * @param  {Array}  modules  array of modules to include in instance.
@@ -56,7 +54,7 @@ class Sassport {
   constructor(name, modules = [], options = {}) {
     options = _.defaults(options, {
       renderer: sass,
-      infer: USE_INFERENCE,
+      infer: true,
       onRequire: (filePath) => {
         try {
           return require(path.resolve(this._localPath, filePath));
@@ -78,7 +76,7 @@ class Sassport {
 
     this._exports = {};
 
-    this._mixins = {};
+    this._loaders = {};
 
     this._localPath = path.resolve('./');
     this._localAssetPath = null;
@@ -128,8 +126,10 @@ class Sassport {
       sassportModules: modules // carried over to node-sass
     };
 
-    this.modules.map((module) => {
-      _.merge(this.options, module.options);
+    this.modules.map((spModule) => {
+      _.merge(this.options, spModule.options);
+
+      _.merge(this._loaders, spModule._loaders);
     });
   }
 
@@ -161,6 +161,12 @@ class Sassport {
 
   functions(functionMap) {
     _.extend(this.options.functions, functionMap);
+
+    return this;
+  }
+
+  loaders(loaderMap) {
+    _.extend(this._loaders, loaderMap);
 
     return this;
   }
@@ -199,18 +205,6 @@ class Sassport {
 
       this._exportMeta.contents.push(`${key}: ${sassValue};`)
     }
-
-    return this;
-  }
-
-  rulesets(rulesets) {
-    rulesets.map((ruleset) => {
-      let renderedRuleset = this.sass
-        .renderSync({ data: ruleset })
-        .css.toString();
-
-      this._exportMeta.contents.push(renderedRuleset);
-    }.bind(this));
 
     return this;
   }
