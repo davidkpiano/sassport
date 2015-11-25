@@ -1,6 +1,9 @@
 # Sassport
 ![Sassport logo](https://raw.githubusercontent.com/davidkpiano/sassport/master/sassport-sm.png)
 
+[Plugins](#available-plugins) | [Quick Start](#quick-start) | [Usage](#using-sassport-modules) | [Assets](#managing-assets) | [Custom Modules](#creating-sassport-modules) | [Loaders](#custom-loaders) | [Examples](#examples)
+--- | --- | --- | --- | --- | --- | ---
+
 JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript functions and values in your Sass projects.
 
 - `npm install sassport --save-dev`
@@ -194,6 +197,39 @@ With the `sassport.wrap(fn, options)` utility function, normal JS functions can 
 - `null (JS)` - converted to a Sass `null` value.
 
 Also, `sassport.utils` provides Chris Eppstein's excellent [node-sass-utils](https://github.com/sass-eyeglass/node-sass-utils) library.
+
+## Custom Loaders
+
+You can now specify **custom loaders for `@import` files** by separating them with an `!` after the import path. Here's an example that uses the Sassport reference module to load SCSS files by reference:
+
+```js
+var sassport = require('sassport');
+var referenceModule = require('sassport/modules/reference-module');
+
+sassport([ referenceModule ])
+  .render({ file: 'main.scss' }, /* ... */);
+```
+
+```scss
+// In path/to/_foo.scss:
+.button {
+  background: blue;
+  color: white;
+}
+
+// In main.scss:
+@import 'path/to/foo !reference';
+
+.my-button {
+  @extend #{reference('.button')};
+}
+
+// Result:
+.my-button {
+  background: blue;
+  color: white;
+}
+```
 
 ## Value Inference
 By default, Sassport automatically _infers_ Sass values from JavaScript strings. This means that you can seamlessly share CSS-like or (Sass-like) values as strings between JS and Sass, and Sassport will hand them over to sass as their *inferred values*, not as strings. For example:
