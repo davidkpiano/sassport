@@ -204,7 +204,7 @@ You can now specify **custom loaders for `@import` files** by separating them wi
 
 ```js
 var sassport = require('sassport');
-var referenceModule = require('sassport/modules/reference-module');
+var referenceModule = require('sassport/modules/reference');
 
 sassport([ referenceModule ])
   .render({ file: 'main.scss' }, /* ... */);
