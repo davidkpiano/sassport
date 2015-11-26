@@ -47,4 +47,34 @@ describe('Sassport require() function', function() {
         done);
     });
   });
+
+  describe('the onRequire() hook', () => {
+    let counter = 0;
+
+    let sassportModule = sassport([], {
+      onRequire: (filePath) => {
+        counter++;
+
+        return require(filePath);
+      }
+    });
+
+
+    let testData = `
+      $vars: require('test/assets-test/simple-js-test');
+      $vars-2: require('test/assets-test/simple-js-test');
+
+      test { color: map-get($vars, "primaryColor"); }
+    `;
+
+    it('should execute the onRequire() hook when requiring files in a Sass file', (done) => {
+      sassportModule.render({
+        data: testData,
+        outputStyle: 'compressed'
+      }, (err, res) => {
+        assert.equal(res.css.toString(), `test{color:#c0ff33}\n`);
+        done(assert.equal(counter, 2));
+      });
+    });
+  })
 });

@@ -1,0 +1,7 @@
+@import 'deep/baz !reference';
+
+.foo {
+  color: green;
+
+  @extend #{reference('.baz')};
+}

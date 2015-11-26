@@ -1,13 +1,17 @@
 # Sassport
 ![Sassport logo](https://raw.githubusercontent.com/davidkpiano/sassport/master/sassport-sm.png)
 
+[Plugins](#available-plugins) | [Quick Start](#quick-start) | [Usage](#using-sassport-modules) | [Assets](#managing-assets) | [Custom Modules](#creating-sassport-modules) | [Loaders](#custom-loaders) | [Examples](#examples)
+--- | --- | --- | --- | --- | --- | ---
+
 JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript functions and values in your Sass projects.
 
 - `npm install sassport --save-dev`
 - `sassport([...]).render(...);`
 
 ## Available Plugins
-- [gulp-sassport](https://github.com/davidkpiano/gulp-sassport) (functional, work in progress)
+- [gulp-sassport](https://github.com/davidkpiano/gulp-sassport)
+- [sassport-loader](https://github.com/IngwiePhoenix/sassport-loader) for [Webpack](http://webpack.github.io/) (thanks to [@IngwiePhoenix](https://github.com/IngwiePhoenix)!)
 - More to come soon!
 
 ## Quick Start
@@ -105,7 +109,7 @@ When a Sassport module is included:
 - Specified exports get imported when you `@import 'that-module/specific-export'`.
 
 ## Managing Assets
-To specify where your assets are, configure the asset paths by using the `.assets(localAssetPath, remoteAssetPath)` method. Then, you can use the Sass helper function `asset-url($source, $module: null)` to generate the remote URL path. The `$source` is relative to the provided `localAssetPath`.
+To specify where your assets are, configure the asset paths by using the `.assets(localAssetPath, remoteAssetPath)` method. Then, you can use the Sass helper function `resolve-url($source, $module: null)` to generate the remote URL path. The `$source` is relative to the provided `localAssetPath`.
 
 **EXAMPLE:**
 ```js
@@ -120,11 +124,11 @@ sassport([ /* modules */ ])
 .my-image {
   // Renders as:
   // background-image: url(public/assets/images/my-image.png);
-  background-image: asset-url('images/my-image.png');
+  background-image: resolve-url('images/my-image.png');
 }
 ```
 
-When you `@import` assets (files or directories) from a Sassport module, those get copied into the `sassport-assets/` subdirectory inside the provided `localAssetPath`. These assets can then be referenced in `asset-url()` by specifying the `$module` that it came from.
+When you `@import` assets (files or directories) from a Sassport module, those get copied into the `sassport-assets/` subdirectory inside the provided `localAssetPath`. These assets can then be referenced in `resolve-url()` by specifying the `$module` that it came from.
 
 **EXAMPLE:**
 ```scss
@@ -133,7 +137,7 @@ When you `@import` assets (files or directories) from a Sassport module, those g
 .their-image {
   // Renders as:
   // background-image: url(public/assets/sassport-assets/images/their-image.png);
-  background-image: asset-url('images/their-image.png', 'foo-module');
+  background-image: resolve-url('images/their-image.png', 'foo-module');
 }
 ```
 
@@ -194,6 +198,46 @@ With the `sassport.wrap(fn, options)` utility function, normal JS functions can 
 
 Also, `sassport.utils` provides Chris Eppstein's excellent [node-sass-utils](https://github.com/sass-eyeglass/node-sass-utils) library.
 
+## Custom Loaders
+
+You can now specify **custom loaders for `@import` files** by separating them with an `!` after the import path. Here's an example that uses the Sassport reference module to load SCSS files by reference:
+
+```js
+var sassport = require('sassport');
+
+// The Sassport reference module provides:
+// - a !reference loader
+// - a reference() Sass function
+var referenceModule = require('sassport/modules/reference');
+
+sassport([ referenceModule ])
+  .render({ file: 'main.scss' }, /* ... */);
+```
+
+```scss
+// In path/to/_foo.scss:
+@for $i from 1 through 10 {
+  .col-#{$i} {
+    display: block;
+    width: percentage($i / 10);
+  }
+}
+
+// In main.scss:
+@import 'path/to/foo !reference';
+
+.my-thing {
+  @extend #{reference('.col-4')};
+}
+
+// Result CSS:
+// Notice how the other column selectors never get output.
+.my-thing {
+  display: block;
+  width: 40%;
+}
+```
+
 ## Value Inference
 By default, Sassport automatically _infers_ Sass values from JavaScript strings. This means that you can seamlessly share CSS-like or (Sass-like) values as strings between JS and Sass, and Sassport will hand them over to sass as their *inferred values*, not as strings. For example:
 
@@ -238,10 +282,10 @@ sassport()
 ```scss
 // stylesheet.scss
 $image-path: 'sassport-sm.png';
-$image-size: size-of(asset-path($image-path));
+$image-size: size-of(resolve-path($image-path));
 
 .my-image {
-  background-image: asset-url($image-path);
+  background-image: resolve-url($image-path);
   width: map-get($image-size, 'width') * 1px;
   height: map-get($image-size, 'height') * 1px;
 }

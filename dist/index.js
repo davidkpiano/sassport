@@ -8,10 +8,6 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
@@ -32,15 +28,25 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _ncp = require('ncp');
-
 var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
-var sassUtils = require('node-sass-utils')(_nodeSass2['default']);
+var _importer = require('./importer');
 
-var USE_INFERENCE = true;
+var _importer2 = _interopRequireDefault(_importer);
+
+var _utils = require('./utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+var _utilsWrap = require('./utils/wrap');
+
+var _utilsWrap2 = _interopRequireDefault(_utilsWrap);
+
+var _utilsWrapAll = require('./utils/wrap-all');
+
+var _utilsWrapAll2 = _interopRequireDefault(_utilsWrapAll);
 
 /**
  * Factory for Sassport instances.
@@ -49,8 +55,8 @@ var USE_INFERENCE = true;
  * @return {Object}          returns Sassport instance.
  */
 var sassport = function sassport() {
-  var modules = arguments[0] === undefined ? [] : arguments[0];
-  var options = arguments[1] === undefined ? {} : arguments[1];
+  var modules = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   if (!Array.isArray(modules)) {
     modules = [modules];
@@ -59,58 +65,6 @@ var sassport = function sassport() {
   var sassportInstance = new Sassport(null, modules, options);
 
   return sassportInstance;
-};
-
-/**
- * Collection of utilities from 'node-sass-utils'.
- * @type {Object}
- */
-sassport.utils = sassUtils;
-
-sassport.utils.toSass = function (jsValue) {
-  var infer = arguments[1] === undefined ? USE_INFERENCE : arguments[1];
-
-  if (infer && jsValue && !(typeof jsValue.toSass === 'function')) {
-    // Infer Sass value from JS string value.
-    if (_lodash2['default'].isString(jsValue)) {
-      jsValue = sassport.utils.infer(jsValue);
-
-      // Check each item in array for inferable values.
-    } else if (_lodash2['default'].isArray(jsValue)) {
-      jsValue = _lodash2['default'].map(jsValue, function (item) {
-        return sassport.utils.toSass(item, infer);
-      });
-
-      // Check each value in object for inferable values.
-    } else if (_lodash2['default'].isObject(jsValue)) {
-      jsValue = _lodash2['default'].mapValues(jsValue, function (subval) {
-        return sassport.utils.toSass(subval, infer);
-      });
-    }
-  }
-
-  return sassUtils.castToSass(jsValue);
-};
-
-sassport.utils.infer = function (jsValue) {
-  var result = undefined;
-
-  try {
-    _nodeSass2['default'].renderSync({
-      data: '$_: ___((' + jsValue + '));',
-      functions: {
-        '___($value)': function ___$value(value) {
-          result = value;
-
-          return value;
-        }
-      }
-    });
-  } catch (e) {
-    return jsValue;
-  }
-
-  return result;
 };
 
 /**
@@ -128,55 +82,8 @@ sassport.module = function (name) {
  * @param  {Object} options       (optional) options to pass into the wrapped function.
  * @return {Function}               Returns a wrapped function.
  */
-sassport.wrap = function (unwrappedFunc) {
-  var options = arguments[1] === undefined ? {} : arguments[1];
-
-  options = _lodash2['default'].defaults(options, {
-    done: true,
-    quotes: false,
-    infer: USE_INFERENCE
-  });
-
-  return (function () {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    var outerDone = args.pop();
-
-    var innerDone = function innerDone(result) {
-      outerDone(sassport.utils.toSass(result, options.infer));
-    };
-
-    args = args.map(function (arg) {
-      var result = sassUtils.castToJs(arg);
-
-      // Get unitless value from number
-      if (result.value) result = result.value;
-
-      // Get simple get/set interface from map
-      if (result.coerce) result = result.coerce;
-
-      return result;
-    });
-
-    // Add 'done' callback if options.done is set true
-    if (options.done) {
-      args.push(innerDone);
-    }
-
-    var result = unwrappedFunc.apply(undefined, _toConsumableArray(args));
-
-    // Quote string if options.quotes is set true
-    if (options.quotes && _lodash2['default'].isString(result)) {
-      result = '\'"' + result + '"\'';
-    }
-
-    if (typeof result !== 'undefined') {
-      innerDone(result);
-    }
-  }).bind(this);
-};
+sassport.wrap = _utilsWrap2['default'];
+sassport.wrapAll = _utilsWrapAll2['default'];
 
 var Sassport = (function () {
   /**
@@ -190,19 +97,28 @@ var Sassport = (function () {
   function Sassport(name) {
     var _this = this;
 
-    var modules = arguments[1] === undefined ? [] : arguments[1];
-    var options = arguments[2] === undefined ? {} : arguments[2];
+    var modules = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
     _classCallCheck(this, Sassport);
 
     options = _lodash2['default'].defaults(options, {
       renderer: _nodeSass2['default'],
-      infer: USE_INFERENCE
+      infer: true,
+      onRequire: function onRequire(filePath) {
+        try {
+          return require(_path2['default'].resolve(_this._localPath, filePath));
+        } catch (e) {
+          console.error(e);
+        }
+      }
     });
 
     this.name = name;
     this.modules = modules;
     this.sass = options.renderer;
+
+    this._importer = (0, _importer2['default'])(this);
 
     this._exportMeta = {
       contents: []
@@ -210,28 +126,30 @@ var Sassport = (function () {
 
     this._exports = {};
 
-    this._mixins = {};
+    this._loaders = {};
 
     this._localPath = _path2['default'].resolve('./');
     this._localAssetPath = null;
     this._remoteAssetPath = null;
 
+    this._onRequire = options.onRequire.bind(this);
+
     this.options = {
       functions: _defineProperty({
-        'asset-path($source, $module: null)': (function (source, module) {
-          var modulePath = sassUtils.isNull(module) ? '' : module.getValue();
+        'resolve-path($source, $module: null)': (function (source, module) {
+          var modulePath = _utils2['default'].isNull(module) ? '' : module.getValue();
           var assetPath = source.getValue();
           var localPath = modulePath ? this._localAssetPath : this._localPath;
           var assetUrl = '' + _path2['default'].join(localPath, modulePath, assetPath);
 
           return _nodeSass2['default'].types.String(assetUrl);
         }).bind(this),
-        'asset-url($source, $module: null)': (function (source, module) {
+        'resolve-url($source, $module: null)': (function (source, module) {
           if (!this._remoteAssetPath) {
             throw 'Remote asset path not specified.\n\nSpecify the remote path with `sassport([...]).assets(localPath, remotePath)`.';
           }
 
-          var modulePath = sassUtils.isNull(module) ? '' : 'sassport-assets/' + module.getValue();
+          var modulePath = _utils2['default'].isNull(module) ? '' : 'sassport-assets/' + module.getValue();
           var assetPath = source.getValue();
 
           var assetUrl = 'url(' + _path2['default'].join(this._remoteAssetPath, modulePath, assetPath) + ')';
@@ -240,22 +158,25 @@ var Sassport = (function () {
         }).bind(this)
       }, 'require($path, $propPath: null, $infer: ' + options.infer + ')', (function (file, propPath, infer, done) {
         file = file.getValue();
-        propPath = sassUtils.isNull(propPath) ? false : propPath.getValue();
+        propPath = _utils2['default'].isNull(propPath) ? false : propPath.getValue();
 
-        var data = require(_path2['default'].resolve(this._localPath, file));
+        var data = this._onRequire(_path2['default'].resolve(this._localPath, file));
 
         if (propPath) {
           data = _lodash2['default'].get(data, propPath);
         }
 
-        return sassport.utils.toSass(data, sassUtils.castToJs(infer));
+        return _utils2['default'].toSass(data, _utils2['default'].castToJs(infer));
       }).bind(this)),
       importer: this._importer,
+      includePaths: ['node_modules'],
       sassportModules: modules // carried over to node-sass
     };
 
-    this.modules.map(function (module) {
-      _lodash2['default'].merge(_this.options, module.options);
+    this.modules.map(function (spModule) {
+      _lodash2['default'].merge(_this.options, spModule.options);
+
+      _lodash2['default'].merge(_this._loaders, spModule._loaders);
     });
   }
 
@@ -269,9 +190,10 @@ var Sassport = (function () {
   }, {
     key: '_beforeRender',
     value: function _beforeRender(options) {
-      _lodash2['default'].extend(this.options, options);
+      this.options.importer = options.importer || this._importer;
+      this.options.includePaths = this.options.includePaths.concat(options.includePaths || []);
 
-      this.options.importer = this._importer;
+      _lodash2['default'].extend(this.options, options);
     }
   }, {
     key: 'render',
@@ -291,6 +213,13 @@ var Sassport = (function () {
     key: 'functions',
     value: function functions(functionMap) {
       _lodash2['default'].extend(this.options.functions, functionMap);
+
+      return this;
+    }
+  }, {
+    key: 'loaders',
+    value: function loaders(loaderMap) {
+      _lodash2['default'].extend(this._loaders, loaderMap);
 
       return this;
     }
@@ -324,70 +253,11 @@ var Sassport = (function () {
       return this._localAssetPath;
     }
   }, {
-    key: '_importer',
-    value: function _importer(url, prev, done) {
-      var _url$split = url.split('/');
-
-      var _url$split2 = _toArray(_url$split);
-
-      var moduleName = _url$split2[0];
-
-      var moduleImports = _url$split2.slice(1);
-
-      var module = null;
-      var exportMeta = undefined;
-      var importerData = {
-        contents: ''
-      };
-
-      module = _lodash2['default'].find(this.options.sassportModules, function (childModule) {
-        return childModule.name === moduleName;
-      });
-
-      if (!module) return prev;
-
-      exportMeta = module._exportMeta;
-
-      if (moduleImports.length) {
-        exportMeta = module._exports[moduleImports[0]];
-      }
-
-      if (exportMeta.file) {
-        if (!exportMeta.contents || !exportMeta.contents.length) {
-          importerData.file = exportMeta.file;
-
-          delete importerData.contents;
-        } else {
-          importerData.contents = _fs2['default'].readFileSync(exportMeta.file);
-        }
-      }
-
-      if (exportMeta.contents && exportMeta.contents.length) {
-        importerData.contents += exportMeta.contents.join('');
-      }
-
-      if (exportMeta.directory) {
-        (function () {
-          var assetDirPath = _path2['default'].join(module._localAssetPath, moduleName, moduleImports[0]);
-
-          (0, _mkdirp2['default'])(assetDirPath, function (err, res) {
-            if (err) console.error(err);
-
-            (0, _ncp.ncp)(exportMeta.directory, assetDirPath, function (err, res) {
-              done(importerData);
-            });
-          });
-        })();
-      } else {
-        done(importerData);
-      }
-    }
-  }, {
     key: 'variables',
     value: function variables(variableMap) {
       for (var key in variableMap) {
         var value = variableMap[key];
-        var sassValue = sassUtils.sassString(sassUtils.castToSass(value));
+        var sassValue = _utils2['default'].sassString(_utils2['default'].castToSass(value));
 
         this._exportMeta.contents.push(key + ': ' + sassValue + ';');
       }
@@ -395,24 +265,11 @@ var Sassport = (function () {
       return this;
     }
   }, {
-    key: 'rulesets',
-    value: function rulesets(_rulesets) {
-      var _this2 = this;
-
-      _rulesets.map((function (ruleset) {
-        var renderedRuleset = _this2.sass.renderSync({ data: ruleset }).css.toString();
-
-        _this2._exportMeta.contents.push(renderedRuleset);
-      }).bind(this));
-
-      return this;
-    }
-  }, {
     key: 'assets',
     value: function assets(localPath) {
-      var _this3 = this;
+      var _this2 = this;
 
-      var remotePath = arguments[1] === undefined ? null : arguments[1];
+      var remotePath = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
       this._localPath = localPath;
       this._localAssetPath = _path2['default'].join(localPath, 'sassport-assets');
@@ -423,9 +280,9 @@ var Sassport = (function () {
 
       // Update the path information for each module
       this.modules.map(function (module) {
-        module._localPath = _this3._localPath;
-        module._localAssetPath = _this3._localAssetPath;
-        module._remoteAssetPath = _this3._remoteAssetPath;
+        module._localPath = _this2._localPath;
+        module._localAssetPath = _this2._localAssetPath;
+        module._remoteAssetPath = _this2._remoteAssetPath;
       });
 
       return this;
