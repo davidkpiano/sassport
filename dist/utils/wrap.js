@@ -10,6 +10,10 @@ var _lodashLangIsString = require('lodash/lang/isString');
 
 var _lodashLangIsString2 = _interopRequireDefault(_lodashLangIsString);
 
+var _lodashLangIsArray = require('lodash/lang/isArray');
+
+var _lodashLangIsArray2 = _interopRequireDefault(_lodashLangIsArray);
+
 var _lodashObjectDefaults = require('lodash/object/defaults');
 
 var _lodashObjectDefaults2 = _interopRequireDefault(_lodashObjectDefaults);
@@ -17,6 +21,28 @@ var _lodashObjectDefaults2 = _interopRequireDefault(_lodashObjectDefaults);
 var _index = require('./index');
 
 var _index2 = _interopRequireDefault(_index);
+
+function getJsValue(arg) {
+  var result = _index2['default'].castToJs(arg);
+
+  if ((0, _lodashLangIsArray2['default'])(result)) {
+    return result.map(function (arg) {
+      return getJsValue(arg);
+    });
+  }
+
+  // Get unitless value from number
+  if (result.value) {
+    return result.value;
+  }
+
+  // Get simple get/set interface from map
+  if (result.coerce) {
+    return result.coerce;
+  }
+
+  return result;
+}
 
 exports['default'] = function (unwrappedFunc) {
   var _this = this;
@@ -41,17 +67,7 @@ exports['default'] = function (unwrappedFunc) {
       outerDone(_index2['default'].toSass(innerResult, options.infer));
     };
 
-    args = args.map(function (arg) {
-      var result = _index2['default'].castToJs(arg);
-
-      // Get unitless value from number
-      if (result.value) result = result.value;
-
-      // Get simple get/set interface from map
-      if (result.coerce) result = result.coerce;
-
-      return result;
-    });
+    args = getJsValue(args);
 
     // Add 'done' callback if options.done is set true
     if (options.done) {

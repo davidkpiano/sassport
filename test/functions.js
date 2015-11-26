@@ -131,15 +131,66 @@ describe('Sassport.functions', function() {
     });
   });
 
-  describe('post-defined functions', (done) => {
+  describe('functions with wrapAll()', (done) => {
     let sassportModule = sassport.module('test').functions({
-      'foo($bar)': function(bar) {
-        sassportModule['post()'] = function() {
-          return sass.types.String('post-defined');
-        }
+      'Math($key, $args...)': sassport.wrapAll(Math)
+    });
 
-        return sass.types.String('test ' + bar.getValue());
-      }
+    let fooModule = sassport.module('foo')
+      .functions({
+        'Foo($key, $args...)': sassport.wrapAll({
+          someValue: 'hello world',
+          someFn: (a, b) => a + b
+        })
+      });
+
+    let barModule = sassport.module('bar')
+      .functions({
+        'Bar($key, $args...)': sassport.wrapAll({
+          someValue: 'hello world',
+          someFn: (a, b) => a + b
+        }, {
+          quotes: true
+        })
+      });
+
+    it('should wrap all methods of an object to be callable by the parent Sass function', (done) => {
+      assertRenderSync(
+        sassportModule,
+        'test { test: Math(pow, 2, 2) }',
+        'test{test:4}\n',
+        done);
+    });
+
+    it('should return a value and ignore extra arguments if key refers to object property', (done) => {
+      assertRenderSync(
+        fooModule,
+        `
+          test {
+            val: Foo(someValue);
+            val-extra: Foo(someValue, 1, 2, 3);
+            fn-num: Foo(someFn, 1, 2);
+            fn-string: Foo(someFn, 'foo', 'bar');
+          }
+        `,
+        'test{val:hello world;val-extra:hello world;fn-num:3;fn-string:foobar}\n',
+        done);
+    });
+
+    it('should pass options to sassport.wrap()', (done) => {
+      assertRenderSync(
+        barModule,
+        `
+          test {
+            val: Bar(someValue);
+            val-extra: Bar(someValue, 1, 2, 3);
+            fn-num: Bar(someFn, 1, 2);
+            fn-string: Bar(someFn, 'foo', 'bar');
+          }
+        `,
+        'test{val:"hello world";val-extra:"hello world";fn-num:3;fn-string:"foobar"}\n',
+        done);
     });
   });
 });
+

@@ -8,6 +8,7 @@ import mkdirp from 'mkdirp';
 import createImporter from './importer';
 import utils from './utils';
 import wrap from './utils/wrap';
+import wrapAll from './utils/wrap-all';
 
 /**
  * Factory for Sassport instances.
@@ -41,7 +42,7 @@ sassport.module = function(name) {
  * @return {Function}               Returns a wrapped function.
  */
 sassport.wrap = wrap;
-
+sassport.wrapAll = wrapAll;
 
 class Sassport {
   /**

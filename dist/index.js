@@ -44,6 +44,10 @@ var _utilsWrap = require('./utils/wrap');
 
 var _utilsWrap2 = _interopRequireDefault(_utilsWrap);
 
+var _utilsWrapAll = require('./utils/wrap-all');
+
+var _utilsWrapAll2 = _interopRequireDefault(_utilsWrapAll);
+
 /**
  * Factory for Sassport instances.
  * @param  {Array}  modules  array of modules to include in instance.
@@ -79,6 +83,7 @@ sassport.module = function (name) {
  * @return {Function}               Returns a wrapped function.
  */
 sassport.wrap = _utilsWrap2['default'];
+sassport.wrapAll = _utilsWrapAll2['default'];
 
 var Sassport = (function () {
   /**

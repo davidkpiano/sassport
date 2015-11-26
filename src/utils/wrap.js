@@ -1,7 +1,28 @@
 import isString from 'lodash/lang/isString';
+import isArray from 'lodash/lang/isArray';
 import defaults from 'lodash/object/defaults';
 
 import utils from './index';
+
+function getJsValue(arg) {
+  let result = utils.castToJs(arg);
+
+  if (isArray(result)) {
+    return result.map((arg) => getJsValue(arg));
+  }
+
+  // Get unitless value from number
+  if (result.value) { 
+    return result.value;
+  }
+
+  // Get simple get/set interface from map
+  if (result.coerce) { 
+    return result.coerce;
+  }
+
+  return result;
+}
 
 export default function(unwrappedFunc, options = {}) {
   options = defaults(options, {
@@ -18,17 +39,7 @@ export default function(unwrappedFunc, options = {}) {
       outerDone(utils.toSass(innerResult, options.infer));
     };
 
-    args = args.map((arg) => {
-        let result = utils.castToJs(arg);
-
-        // Get unitless value from number
-        if (result.value) result = result.value;
-
-        // Get simple get/set interface from map
-        if (result.coerce) result = result.coerce;
-
-        return result;
-      });
+    args = getJsValue(args);
 
     // Add 'done' callback if options.done is set true
     if (options.done) {
