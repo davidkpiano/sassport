@@ -34,6 +34,8 @@ export default function resolve(rootPath, filePath) {
   let relPath = path.join(base, name);
   let absPath = path.join(rootPath, relPath);
 
+  let rawResolve = new SassQueued(relPath, absPath, 0);
+
   if (fileExists(absPath)) {
     resolved.push(new SassQueued(relPath, absPath, 0));
   }
@@ -41,7 +43,6 @@ export default function resolve(rootPath, filePath) {
   // next test variation with underscore
   relPath = path.join(base, `_${name}`);
   absPath = path.join(rootPath, relPath);
-
 
   if (fileExists(absPath)) {
     resolved.push(new SassQueued(relPath, absPath, 0));
@@ -66,6 +67,10 @@ export default function resolve(rootPath, filePath) {
       resolved.push(new SassQueued(relPath, absPath, 0));
     }
   });
+
+  if (!resolved.length) {
+    resolved.push(rawResolve);
+  }
 
   return resolved;
 }

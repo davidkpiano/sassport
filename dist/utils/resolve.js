@@ -57,6 +57,8 @@ function resolve(rootPath, filePath) {
   var relPath = _path2['default'].join(base, name);
   var absPath = _path2['default'].join(rootPath, relPath);
 
+  var rawResolve = new SassQueued(relPath, absPath, 0);
+
   if (fileExists(absPath)) {
     resolved.push(new SassQueued(relPath, absPath, 0));
   }
@@ -88,6 +90,10 @@ function resolve(rootPath, filePath) {
       resolved.push(new SassQueued(relPath, absPath, 0));
     }
   });
+
+  if (!resolved.length) {
+    resolved.push(rawResolve);
+  }
 
   return resolved;
 }

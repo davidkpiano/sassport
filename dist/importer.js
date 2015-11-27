@@ -47,14 +47,14 @@ function createImporter(sassportModule) {
 
     var _url$split$map2 = _toArray(_url$split$map);
 
-    var resolvedUrl = _url$split$map2[0];
+    var importUrl = _url$split$map2[0];
 
     var loaderKeys = _url$split$map2.slice(1);
 
     if (loaderKeys.length) {
-      var importPath = (0, _utilsResolve2['default'])(_path2['default'].dirname(prev), resolvedUrl)[0].absPath;
+      var queuedResolve = (0, _utilsResolve2['default'])(_path2['default'].dirname(prev), importUrl);
 
-      return transform(importPath, loaderKeys, sassportModule);
+      return transform(queuedResolve, loaderKeys, sassportModule, done);
     }
 
     var _url$split = url.split('/');
@@ -119,28 +119,42 @@ function createImporter(sassportModule) {
   };
 }
 
-function transform(importPath, loaderKeys, spModule) {
+function transform(queuedResolve, loaderKeys, spModule, done) {
   var loaders = spModule._loaders;
   var missingLoaders = (0, _lodashArrayDifference2['default'])(loaderKeys, Object.keys(loaders));
+  var contents = null;
+  var importPath = queuedResolve[0].absPath;
 
   if (missingLoaders.length) {
     throw new Error('These loaders are missing:\n      ' + missingLoaders.join(', '));
   }
 
-  var contents = _fs2['default'].readFileSync(importPath, {
-    encoding: 'UTF-8'
-  });
+  try {
+    contents = _fs2['default'].readFileSync(importPath, {
+      encoding: 'UTF-8'
+    });
+  } catch (e) {
+    console.log('WARNING: import path "' + importPath + '" could not be read.');
+  }
 
-  var transformedContents = (0, _lodashCollectionReduce2['default'])(loaderKeys, function (contents, loader) {
-    try {
-      return loaders[loader](contents);
-    } catch (err) {
-      throw new Error('The "' + loader + '" failed when trying to transform this file:\n        ' + importPath + '\n\n        ' + err);
+  function innerDone(contents) {
+    if (!loaderKeys.length) {
+      return done({ contents: contents });
     }
-  }, contents);
 
-  return {
-    contents: transformedContents
-  };
+    var loaderKey = loaderKeys.shift();
+
+    try {
+      var transformedContents = loaders[loaderKey](contents, queuedResolve, innerDone);
+
+      if (typeof transformedContents !== 'undefined') {
+        innerDone(transformedContents);
+      }
+    } catch (err) {
+      throw new Error('The "' + loaderKey + '" failed when trying to transform this file:\n        ' + importPath + '\n\n        ' + err);
+    }
+  }
+
+  innerDone(contents);
 }
 module.exports = exports['default'];

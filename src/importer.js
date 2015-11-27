@@ -9,16 +9,16 @@ import resolve from './utils/resolve';
 
 export default function createImporter(sassportModule) {
   return (url, prev, done) => {
-    let [resolvedUrl, ...loaderKeys] = url.split('!')
+    let [importUrl, ...loaderKeys] = url.split('!')
       .map((part) => part.trim());
 
     if (loaderKeys.length) {
-      let importPath = resolve(
+      let queuedResolve = resolve(
         path.dirname(prev),
-        resolvedUrl
-      )[0].absPath;
+        importUrl
+      );
 
-      return transform(importPath, loaderKeys, sassportModule);
+      return transform(queuedResolve, loaderKeys, sassportModule, done);
     }
 
 
@@ -75,31 +75,45 @@ export default function createImporter(sassportModule) {
   }
 }
 
-function transform(importPath, loaderKeys, spModule) {
+function transform(queuedResolve, loaderKeys, spModule, done) {
   let loaders = spModule._loaders;
   let missingLoaders = difference(loaderKeys, Object.keys(loaders));
+  let contents = null;
+  let importPath = queuedResolve[0].absPath;
 
   if (missingLoaders.length) {
     throw new Error(`These loaders are missing:
       ${missingLoaders.join(', ')}`);
   } 
 
-  let contents = fs.readFileSync(importPath, {
-      encoding: 'UTF-8'
-    });
+  try {
+    contents = fs.readFileSync(importPath, {
+        encoding: 'UTF-8'
+      });
+  } catch(e) {
+    console.log(`WARNING: import path "${importPath}" could not be read.`);
+  }
 
-  let transformedContents = reduce(loaderKeys, (contents, loader) => {
+  function innerDone(contents) {
+    if (!loaderKeys.length) {
+      return done({ contents });
+    }
+
+    let loaderKey = loaderKeys.shift();
+
     try {
-      return loaders[loader](contents);
+      let transformedContents = loaders[loaderKey](contents, queuedResolve, innerDone);
+
+      if (typeof transformedContents !== 'undefined') {
+        innerDone(transformedContents);
+      }
     } catch (err) {
-      throw new Error(`The "${loader}" failed when trying to transform this file:
+      throw new Error(`The "${loaderKey}" failed when trying to transform this file:
         ${importPath}
 
         ${err}`);
     }
-  }, contents);
-
-  return {
-    contents: transformedContents
   }
+
+  innerDone(contents);
 }
