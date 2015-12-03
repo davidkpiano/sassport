@@ -1,25 +1,21 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', {
+Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports['default'] = createImporter;
+exports.default = createImporter;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+var _find = require('lodash/collection/find');
 
-function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
+var _find2 = _interopRequireDefault(_find);
 
-var _lodashCollectionFind = require('lodash/collection/find');
+var _difference = require('lodash/array/difference');
 
-var _lodashCollectionFind2 = _interopRequireDefault(_lodashCollectionFind);
+var _difference2 = _interopRequireDefault(_difference);
 
-var _lodashArrayDifference = require('lodash/array/difference');
+var _reduce = require('lodash/collection/reduce');
 
-var _lodashArrayDifference2 = _interopRequireDefault(_lodashArrayDifference);
-
-var _lodashCollectionReduce = require('lodash/collection/reduce');
-
-var _lodashCollectionReduce2 = _interopRequireDefault(_lodashCollectionReduce);
+var _reduce2 = _interopRequireDefault(_reduce);
 
 var _path = require('path');
 
@@ -35,9 +31,13 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _utilsResolve = require('./utils/resolve');
+var _resolve = require('./utils/resolve');
 
-var _utilsResolve2 = _interopRequireDefault(_utilsResolve);
+var _resolve2 = _interopRequireDefault(_resolve);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
 
 function createImporter(sassportModule) {
   return function (url, prev, done) {
@@ -52,7 +52,7 @@ function createImporter(sassportModule) {
     var loaderKeys = _url$split$map2.slice(1);
 
     if (loaderKeys.length) {
-      var queuedResolve = (0, _utilsResolve2['default'])(_path2['default'].dirname(prev), importUrl);
+      var queuedResolve = (0, _resolve2.default)(_path2.default.dirname(prev), importUrl);
 
       return transform(queuedResolve, loaderKeys, sassportModule, done);
     }
@@ -72,7 +72,7 @@ function createImporter(sassportModule) {
     };
 
     // Find submodule within modules
-    spModule = (0, _lodashCollectionFind2['default'])(sassportModule.options.sassportModules, function (childModule) {
+    spModule = (0, _find2.default)(sassportModule.options.sassportModules, function (childModule) {
       return childModule.name === moduleName;
     });
 
@@ -93,7 +93,7 @@ function createImporter(sassportModule) {
 
         delete importerData.contents;
       } else {
-        importerData.contents = _fs2['default'].readFileSync(exportMeta.file);
+        importerData.contents = _fs2.default.readFileSync(exportMeta.file);
       }
     }
 
@@ -103,9 +103,9 @@ function createImporter(sassportModule) {
 
     if (exportMeta.directory) {
       (function () {
-        var assetDirPath = _path2['default'].join(spModule._localAssetPath, moduleName, moduleImports[0]);
+        var assetDirPath = _path2.default.join(spModule._localAssetPath, moduleName, moduleImports[0]);
 
-        (0, _mkdirp2['default'])(assetDirPath, function (err, res) {
+        (0, _mkdirp2.default)(assetDirPath, function (err, res) {
           if (err) console.error(err);
 
           (0, _ncp.ncp)(exportMeta.directory, assetDirPath, function (err, res) {
@@ -121,7 +121,7 @@ function createImporter(sassportModule) {
 
 function transform(queuedResolve, loaderKeys, spModule, done) {
   var loaders = spModule._loaders;
-  var missingLoaders = (0, _lodashArrayDifference2['default'])(loaderKeys, Object.keys(loaders));
+  var missingLoaders = (0, _difference2.default)(loaderKeys, Object.keys(loaders));
   var contents = null;
   var importPath = queuedResolve[0].absPath;
 
@@ -130,7 +130,7 @@ function transform(queuedResolve, loaderKeys, spModule, done) {
   }
 
   try {
-    contents = _fs2['default'].readFileSync(importPath, {
+    contents = _fs2.default.readFileSync(importPath, {
       encoding: 'UTF-8'
     });
   } catch (e) {
@@ -157,4 +157,3 @@ function transform(queuedResolve, loaderKeys, spModule, done) {
 
   innerDone(contents);
 }
-module.exports = exports['default'];

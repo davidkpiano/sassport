@@ -2,7 +2,7 @@ var assert = require('assert');
 var should = require('should');
 var sass = require('node-sass');
 
-var sassport = require('../dist/index.js');
+import sassport from '../dist/index.js';
 var assertRenderSync = require('./util/assertRenderSync.js');
 
 describe('Sassport.module', function() {

@@ -1,4 +1,4 @@
-var sassport = require('../../dist/index.js');
+import sassport from '../../dist/index.js';
 var sass = require('node-sass');
 
 module.exports = sassport.module('single-module')

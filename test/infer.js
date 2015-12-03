@@ -4,7 +4,7 @@ var sass = require('node-sass');
 var path = require('path');
 var _ = require('lodash');
 
-var sassport = require('../dist/index.js');
+import sassport from '../dist/index.js';
 var assertRenderSync = require('./util/assertRenderSync.js');
 
 var inferTest = require('./assets-test/infer-js-test.js');

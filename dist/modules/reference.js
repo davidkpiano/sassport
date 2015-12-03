@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', {
+Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+var _index = require('../index.js');
 
-var _indexJs = require('../index.js');
-
-var _indexJs2 = _interopRequireDefault(_indexJs);
+var _index2 = _interopRequireDefault(_index);
 
 var _nodeSass = require('node-sass');
 
@@ -18,17 +16,19 @@ var _gonzalesPe = require('gonzales-pe');
 
 var _gonzalesPe2 = _interopRequireDefault(_gonzalesPe);
 
-var referenceModule = _indexJs2['default'].module('reference').functions({
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var referenceModule = _index2.default.module('reference').functions({
   'reference($selector)': function reference$selector(selector, done) {
     var selectorString = selector.getValue();
 
     var result = transformSelector(selectorString);
 
-    return _nodeSass2['default'].types.String(result);
+    return _nodeSass2.default.types.String(result);
   }
 }).loaders({
   'reference': function reference(contents, options, done) {
-    var tree = _gonzalesPe2['default'].parse(contents, {
+    var tree = _gonzalesPe2.default.parse(contents, {
       syntax: 'scss',
       context: 'stylesheet'
     });
@@ -40,7 +40,7 @@ var referenceModule = _indexJs2['default'].module('reference').functions({
 });
 
 var referenceLoader = function referenceLoader(contents, done) {
-  var tree = _gonzalesPe2['default'].parse(contents, {
+  var tree = _gonzalesPe2.default.parse(contents, {
     syntax: 'scss'
   });
 
@@ -70,7 +70,7 @@ var transformSelectors = function transformSelectors(node) {
 };
 
 var transformSelector = function transformSelector(selector) {
-  var tree = _gonzalesPe2['default'].parse(selector, {
+  var tree = _gonzalesPe2.default.parse(selector, {
     syntax: 'scss',
     context: 'selector'
   });
@@ -80,5 +80,4 @@ var transformSelector = function transformSelector(selector) {
   return tree.toString();
 };
 
-exports['default'] = referenceModule;
-module.exports = exports['default'];
+exports.default = referenceModule;

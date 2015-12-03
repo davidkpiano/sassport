@@ -1,31 +1,74 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', {
+Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+exports.default = function (unwrappedFunc) {
+  var _this = this;
 
-var _lodashLangIsString = require('lodash/lang/isString');
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-var _lodashLangIsString2 = _interopRequireDefault(_lodashLangIsString);
+  options = (0, _defaults2.default)(options, {
+    done: true,
+    quotes: false,
+    infer: true
+  });
 
-var _lodashLangIsArray = require('lodash/lang/isArray');
+  return function () {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
 
-var _lodashLangIsArray2 = _interopRequireDefault(_lodashLangIsArray);
+    var outerDone = args.pop();
+    var result = undefined;
 
-var _lodashObjectDefaults = require('lodash/object/defaults');
+    var innerDone = function innerDone(innerResult) {
+      outerDone(_index2.default.toSass(innerResult, options.infer));
+    };
 
-var _lodashObjectDefaults2 = _interopRequireDefault(_lodashObjectDefaults);
+    args = getJsValue(args);
+
+    // Add 'done' callback if options.done is set true
+    if (options.done) {
+      args.push(innerDone);
+    }
+
+    result = unwrappedFunc.apply(_this, args);
+
+    // Quote string if options.quotes is set true
+    if (options.quotes && (0, _isString2.default)(result)) {
+      result = '\'"' + result + '"\'';
+    }
+
+    if (typeof result !== 'undefined') {
+      innerDone(result);
+    }
+  };
+};
+
+var _isString = require('lodash/lang/isString');
+
+var _isString2 = _interopRequireDefault(_isString);
+
+var _isArray = require('lodash/lang/isArray');
+
+var _isArray2 = _interopRequireDefault(_isArray);
+
+var _defaults = require('lodash/object/defaults');
+
+var _defaults2 = _interopRequireDefault(_defaults);
 
 var _index = require('./index');
 
 var _index2 = _interopRequireDefault(_index);
 
-function getJsValue(arg) {
-  var result = _index2['default'].castToJs(arg);
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-  if ((0, _lodashLangIsArray2['default'])(result)) {
+function getJsValue(arg) {
+  var result = _index2.default.castToJs(arg);
+
+  if ((0, _isArray2.default)(result)) {
     return result.map(function (arg) {
       return getJsValue(arg);
     });
@@ -44,48 +87,4 @@ function getJsValue(arg) {
   return result;
 }
 
-exports['default'] = function (unwrappedFunc) {
-  var _this = this;
-
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-  options = (0, _lodashObjectDefaults2['default'])(options, {
-    done: true,
-    quotes: false,
-    infer: true
-  });
-
-  return (function () {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    var outerDone = args.pop();
-    var result = undefined;
-
-    var innerDone = function innerDone(innerResult) {
-      outerDone(_index2['default'].toSass(innerResult, options.infer));
-    };
-
-    args = getJsValue(args);
-
-    // Add 'done' callback if options.done is set true
-    if (options.done) {
-      args.push(innerDone);
-    }
-
-    result = unwrappedFunc.apply(_this, args);
-
-    // Quote string if options.quotes is set true
-    if (options.quotes && (0, _lodashLangIsString2['default'])(result)) {
-      result = '\'"' + result + '"\'';
-    }
-
-    if (typeof result !== 'undefined') {
-      innerDone(result);
-    }
-  }).bind(this);
-};
-
 ;
-module.exports = exports['default'];

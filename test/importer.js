@@ -1,7 +1,7 @@
 var assert = require('assert');
 var should = require('should');
 
-var sassport = require('../dist/index.js');
+import sassport from '../dist/index.js';
 
 describe('Sassport custom importer', function() {
 

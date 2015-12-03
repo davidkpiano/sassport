@@ -56,5 +56,5 @@ export default function(unwrappedFunc, options = {}) {
     if (typeof result !== 'undefined') {
       innerDone(result);
     }
-  }.bind(this);
+  }
 }; 

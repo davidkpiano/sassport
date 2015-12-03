@@ -1,16 +1,16 @@
-var sassport = require('../dist/index.js');
+import sassport from '../dist/index.js';
 var sizeOf = require('image-size');
 
-sassport()
-  .assets(__dirname + '/assets-test', 'remote/assets')
-  .functions({
-    'size-of($path)': sassport.wrap(function(path) {
-      return sizeOf(path);
-    })
-  })
-  .render({
-    data: 'test { path: inspect(size-of(resolve-path("sassport-sm.png"))) }'
-  }, function(err, res) {
-    console.error(err);
-    console.log(res.css.toString());
-  });
+// sassport()
+//   .assets(__dirname + '/assets-test', 'remote/assets')
+//   .functions({
+//     'size-of($path)': sassport.wrap(function(path) {
+//       return sizeOf(path);
+//     })
+//   })
+//   .render({
+//     data: 'test { path: inspect(size-of(resolve-path("sassport-sm.png"))) }'
+//   }, function(err, res) {
+//     console.error(err);
+//     console.log(res.css.toString());
+//   });

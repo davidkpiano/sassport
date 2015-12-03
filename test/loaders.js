@@ -1,8 +1,8 @@
 var assert = require('chai').assert;
 var should = require('should');
 
-var sassport = require('../dist/index.js');
-var referenceModule = require('../dist/modules/reference');
+import sassport from '../dist/index.js';
+import referenceModule from '../dist/modules/reference';
 
 describe('Sassport loaders', () => {
 

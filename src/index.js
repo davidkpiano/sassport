@@ -16,7 +16,7 @@ import wrapAll from './utils/wrap-all';
  * @param  {Object} options  Sassport-specific configuration options.
  * @return {Object}          returns Sassport instance.
  */
-const sassport = function(modules = [], options = {}) {
+let sassport = function(modules = [], options = {}) {
   if (!Array.isArray(modules)) {
     modules = [modules];
   }

@@ -5,8 +5,10 @@ var path = require('path');
 var fs = require('fs');
 var rimraf = require('rimraf');
 
-var sassport = require('../dist/index.js');
+import sassport from '../dist/index.js';
 var assertRenderSync = require('./util/assertRenderSync.js');
+
+console.log(sassport.module);
 
 
 describe('Sassport.assets', function() {
