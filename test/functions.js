@@ -157,8 +157,8 @@ describe('Sassport.functions', function() {
     it('should wrap all methods of an object to be callable by the parent Sass function', (done) => {
       assertRenderSync(
         sassportModule,
-        'test { test: Math(pow, 2, 2) }',
-        'test{test:4}\n',
+        'test { test: Math(pow, 2, 2); min: Math(min, 0, -1, 3, -5) }',
+        'test{test:4;min:-5}\n',
         done);
     });
 

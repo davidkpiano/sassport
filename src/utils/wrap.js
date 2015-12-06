@@ -12,12 +12,12 @@ function getJsValue(arg) {
   }
 
   // Get unitless value from number
-  if (result.value) { 
+  if (result.hasOwnProperty('value')) { 
     return result.value;
   }
 
   // Get simple get/set interface from map
-  if (result.coerce) { 
+  if (result.hasOwnProperty('coerce')) { 
     return result.coerce;
   }
 
