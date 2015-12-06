@@ -136,38 +136,40 @@ var Sassport = (function () {
 
     this.options = {
       functions: _defineProperty({
-        'resolve-path($source, $module: null)': (function (source, module) {
+        'resolve-path($source, $module: null)': function resolvePath$source$moduleNull(source, module) {
           var modulePath = _utils2.default.isNull(module) ? '' : module.getValue();
           var assetPath = source.getValue();
-          var localPath = modulePath ? this._localAssetPath : this._localPath;
+          var localPath = modulePath ? _this._localAssetPath : _this._localPath;
           var assetUrl = '' + _path2.default.join(localPath, modulePath, assetPath);
 
           return _nodeSass2.default.types.String(assetUrl);
-        }).bind(this),
-        'resolve-url($source, $module: null)': (function (source, module) {
-          if (!this._remoteAssetPath) {
+        },
+        'resolve-url($source, $module: null)': function resolveUrl$source$moduleNull(source, module) {
+          if (!_this._remoteAssetPath) {
             throw 'Remote asset path not specified.\n\nSpecify the remote path with `sassport([...]).assets(localPath, remotePath)`.';
           }
 
           var modulePath = _utils2.default.isNull(module) ? '' : 'sassport-assets/' + module.getValue();
           var assetPath = source.getValue();
 
-          var assetUrl = 'url(' + _path2.default.join(this._remoteAssetPath, modulePath, assetPath) + ')';
+          var assetUrl = 'url(' + _path2.default.join(_this._remoteAssetPath, modulePath, assetPath) + ')';
 
           return _nodeSass2.default.types.String(assetUrl);
-        }).bind(this)
-      }, 'require($path, $propPath: null, $infer: ' + options.infer + ')', (function (file, propPath, infer, done) {
+        }
+      }, 'require($path, $propPath: null, $infer: ' + options.infer + ')', function undefined(file, propPath, infer, done) {
         file = file.getValue();
         propPath = _utils2.default.isNull(propPath) ? false : propPath.getValue();
 
-        var data = this._onRequire(_path2.default.resolve(this._localPath, file));
+        var data = _this._onRequire(_path2.default.resolve(_this._localPath, file));
 
         if (propPath) {
           data = _lodash2.default.get(data, propPath);
         }
 
-        return _utils2.default.toSass(data, _utils2.default.castToJs(infer));
-      }).bind(this)),
+        return _utils2.default.toSass(data, {
+          infer: _utils2.default.castToJs(infer)
+        });
+      }),
       importer: this._importer,
       includePaths: ['node_modules'],
       sassportModules: modules // carried over to node-sass

@@ -21,9 +21,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var sassUtils = (0, _nodeSassUtils2.default)(_nodeSass2.default);
 
 sassUtils.toSass = function (jsValue) {
-  var infer = arguments.length <= 1 || arguments[1] === undefined ? USE_INFERENCE : arguments[1];
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-  if (infer && jsValue && !(typeof jsValue.toSass === 'function')) {
+  if (options.infer && jsValue && !(typeof jsValue.toSass === 'function')) {
     // Infer Sass value from JS string value.
     if (_lodash2.default.isString(jsValue)) {
       jsValue = sassUtils.infer(jsValue);
@@ -31,15 +31,20 @@ sassUtils.toSass = function (jsValue) {
       // Check each item in array for inferable values.
     } else if (_lodash2.default.isArray(jsValue)) {
         jsValue = _lodash2.default.map(jsValue, function (item) {
-          return sassUtils.toSass(item, infer);
+          return sassUtils.toSass(item, options);
         });
 
         // Check each value in object for inferable values.
       } else if (_lodash2.default.isObject(jsValue)) {
           jsValue = _lodash2.default.mapValues(jsValue, function (subval) {
-            return sassUtils.toSass(subval, infer);
+            return sassUtils.toSass(subval, options);
           });
         }
+  }
+
+  // Add units to number value if necessary
+  if (options.unit && typeof jsValue === 'number') {
+    jsValue = _nodeSass2.default.types.Number(jsValue, options.unit);
   }
 
   return sassUtils.castToSass(jsValue);

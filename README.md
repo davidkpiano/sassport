@@ -57,11 +57,11 @@ $colors: require('path/to/my-colors'); // Just like Node require()!
 **Result:**
 ```css
 .foo {
-  color: #c0ff33;
+  color: #C0FF33;
 }
 
 .foo:hover {
-  color: #d0ff66;
+  color: #D0FF66;
 }
 ```
 

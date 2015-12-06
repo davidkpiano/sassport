@@ -119,7 +119,7 @@ describe('Sassport.functions', function() {
     });
   });
 
-  describe('wrapped functions with options', function(done) {
+  describe('wrapped functions with "quotes: true" option', function(done) {
     var sassportModule = sassport([ require('./fixtures/single-module.js') ]);
 
     it('should properly quote a string with "quotes" option', function(done) {
@@ -127,6 +127,23 @@ describe('Sassport.functions', function() {
         sassportModule,
         'test { quoted: wrapped-options("foo"); }',
         'test{quoted:"foo quoted"}\n',
+        done);
+    });
+  });
+
+  describe('wrapped functions with "quotes: true" option', () => {
+    let testModule = sassport.module('test')
+      .functions({
+        'double-px($val)': sassport.wrap((val) => val * 2, { unit: 'px' })
+      });
+
+    let sassportModule = sassport([ testModule ]);
+
+    it('should properly apply a unit with the "unit" option specified', (done) => {
+      assertRenderSync(
+        sassportModule,
+        'test { test: double-px(10); }',
+        'test{test:20px}\n',
         done);
     });
   });

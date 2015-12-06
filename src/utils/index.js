@@ -4,8 +4,8 @@ import _ from 'lodash';
 
 const sassUtils = createSassUtils(sass);
 
-sassUtils.toSass = (jsValue, infer = USE_INFERENCE) => {
-  if (infer && jsValue && !(typeof jsValue.toSass === 'function')) {  
+sassUtils.toSass = (jsValue, options = {}) => {
+  if (options.infer && jsValue && !(typeof jsValue.toSass === 'function')) {  
     // Infer Sass value from JS string value.
     if (_.isString(jsValue)) {
       jsValue = sassUtils.infer(jsValue);
@@ -13,13 +13,18 @@ sassUtils.toSass = (jsValue, infer = USE_INFERENCE) => {
     // Check each item in array for inferable values.
     } else if (_.isArray(jsValue)) {
       jsValue = _.map(jsValue, (item) => 
-        sassUtils.toSass(item, infer));
+        sassUtils.toSass(item, options));
 
     // Check each value in object for inferable values.
     } else if (_.isObject(jsValue)) {
       jsValue = _.mapValues(jsValue, (subval) => 
-        sassUtils.toSass(subval, infer));
+        sassUtils.toSass(subval, options));
     }
+  }
+
+  // Add units to number value if necessary
+  if (options.unit && typeof jsValue === 'number') {
+    jsValue = sass.types.Number(jsValue, options.unit);
   }
 
   return sassUtils.castToSass(jsValue);

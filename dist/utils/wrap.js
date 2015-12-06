@@ -12,7 +12,8 @@ exports.default = function (unwrappedFunc) {
   options = (0, _defaults2.default)(options, {
     done: true,
     quotes: false,
-    infer: true
+    infer: true,
+    unit: false
   });
 
   return function () {
@@ -24,17 +25,17 @@ exports.default = function (unwrappedFunc) {
     var result = undefined;
 
     var innerDone = function innerDone(innerResult) {
-      outerDone(_index2.default.toSass(innerResult, options.infer));
+      outerDone(_index2.default.toSass(innerResult, options));
     };
 
-    args = getJsValue(args);
+    var jsArgs = getJsValue(args);
 
     // Add 'done' callback if options.done is set true
     if (options.done) {
-      args.push(innerDone);
+      jsArgs.push(innerDone);
     }
 
-    result = unwrappedFunc.apply(_this, args);
+    result = unwrappedFunc.apply(_this, jsArgs);
 
     // Quote string if options.quotes is set true
     if (options.quotes && (0, _isString2.default)(result)) {

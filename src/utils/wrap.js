@@ -12,7 +12,7 @@ function getJsValue(arg) {
   }
 
   // Get unitless value from number
-  if (result.hasOwnProperty('value')) { 
+  if (result.hasOwnProperty('value')) {
     return result.value;
   }
 
@@ -28,7 +28,8 @@ export default function(unwrappedFunc, options = {}) {
   options = defaults(options, {
     done: true,
     quotes: false,
-    infer: true
+    infer: true,
+    unit: false
   });
 
   return (...args) => {
@@ -36,17 +37,17 @@ export default function(unwrappedFunc, options = {}) {
     let result;
 
     let innerDone = (innerResult) => {
-      outerDone(utils.toSass(innerResult, options.infer));
+      outerDone(utils.toSass(innerResult, options));
     };
 
-    args = getJsValue(args);
+    let jsArgs = getJsValue(args);
 
     // Add 'done' callback if options.done is set true
     if (options.done) {
-      args.push(innerDone);
+      jsArgs.push(innerDone);
     }
 
-    result = unwrappedFunc.apply(this, args);
+    result = unwrappedFunc.apply(this, jsArgs);
 
     // Quote string if options.quotes is set true
     if (options.quotes && isString(result)) {

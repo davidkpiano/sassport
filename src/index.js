@@ -87,15 +87,15 @@ class Sassport {
 
     this.options = {
       functions: {
-        'resolve-path($source, $module: null)': function(source, module) {
+        'resolve-path($source, $module: null)': (source, module) => {
           let modulePath = utils.isNull(module) ? '' : module.getValue();
           let assetPath = source.getValue();
           let localPath = modulePath ? this._localAssetPath : this._localPath;
           let assetUrl = `${path.join(localPath, modulePath, assetPath)}`;
 
           return sass.types.String(assetUrl);
-        }.bind(this),
-        'resolve-url($source, $module: null)': function(source, module) {
+        },
+        'resolve-url($source, $module: null)': (source, module) => {
           if (!this._remoteAssetPath) {
             throw 'Remote asset path not specified.\n\nSpecify the remote path with `sassport([...]).assets(localPath, remotePath)`.';
           }
@@ -108,10 +108,12 @@ class Sassport {
           let assetUrl = `url(${path.join(this._remoteAssetPath, modulePath, assetPath)})`;
 
           return sass.types.String(assetUrl);
-        }.bind(this),
-        [`require($path, $propPath: null, $infer: ${options.infer})`]: function(file, propPath, infer, done) {
+        },
+        [`require($path, $propPath: null, $infer: ${options.infer})`]: (file, propPath, infer, done) => {
           file = file.getValue();
-          propPath = utils.isNull(propPath) ? false : propPath.getValue();
+          propPath = utils.isNull(propPath)
+            ? false
+            : propPath.getValue();
 
           let data = this._onRequire(path.resolve(this._localPath, file));
 
@@ -119,8 +121,10 @@ class Sassport {
             data = _.get(data, propPath);
           }
 
-          return utils.toSass(data, utils.castToJs(infer));
-        }.bind(this)
+          return utils.toSass(data, {
+            infer: utils.castToJs(infer)
+          });
+        }
       },
       importer: this._importer,
       includePaths: ['node_modules'],
