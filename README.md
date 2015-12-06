@@ -268,7 +268,7 @@ sassport()
   .functions({
     'size-of($path)': sassport.wrap(function(path) {
       return sizeOf(path);
-    })
+    }, { unit: 'px' })
   })
   .assets('./assets', 'public/assets')
   .render({
@@ -286,8 +286,8 @@ $image-size: size-of(resolve-path($image-path));
 
 .my-image {
   background-image: resolve-url($image-path);
-  width: map-get($image-size, 'width') * 1px;
-  height: map-get($image-size, 'height') * 1px;
+  width: map-get($image-size, 'width');
+  height: map-get($image-size, 'height');
 }
 ```
 

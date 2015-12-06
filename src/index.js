@@ -234,4 +234,4 @@ class Sassport {
 }
 
 
-export default sassport;
+module.exports = sassport;
