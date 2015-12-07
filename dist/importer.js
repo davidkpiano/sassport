@@ -51,9 +51,9 @@ function createImporter(sassportModule) {
 
     var loaderKeys = _url$split$map2.slice(1);
 
-    if (loaderKeys.length) {
-      var queuedResolve = (0, _resolve2.default)(_path2.default.dirname(prev), importUrl);
+    var queuedResolve = (0, _resolve2.default)(_path2.default.dirname(prev), importUrl);
 
+    if (loaderKeys.length) {
       return transform(queuedResolve, loaderKeys, sassportModule, done);
     }
 
@@ -78,7 +78,7 @@ function createImporter(sassportModule) {
 
     // If module not found, return previous resolved path.
     if (!spModule) {
-      return prev;
+      return { file: queuedResolve[0].absPath };
     }
 
     exportMeta = spModule._exportMeta;

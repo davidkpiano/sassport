@@ -9,6 +9,10 @@ var _find = require('lodash/collection/find');
 
 var _find2 = _interopRequireDefault(_find);
 
+var _flatten = require('lodash/array/flatten');
+
+var _flatten2 = _interopRequireDefault(_flatten);
+
 var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
@@ -47,6 +51,12 @@ function fileExists(filePath) {
 
 function resolve(rootPath, filePath) {
   var exts = ['.scss', '.sass', '.css'];
+  var indexFileNames = ['/index', '/_index'];
+  var fullExts = exts.concat((0, _flatten2.default)(exts.map(function (ext) {
+    return indexFileNames.map(function (iExt) {
+      return iExt + ext;
+    });
+  })));
 
   var filename = _path2.default.join(rootPath, filePath);
   var resolved = [];
@@ -71,7 +81,7 @@ function resolve(rootPath, filePath) {
     resolved.push(new SassQueued(relPath, absPath, 0));
   }
 
-  // next test exts plus underscore
+  // next test fullExts plus underscore
   exts.forEach(function (ext) {
     relPath = _path2.default.join(base, '_' + name + ext);
     absPath = _path2.default.join(rootPath, relPath);
@@ -81,8 +91,8 @@ function resolve(rootPath, filePath) {
     }
   });
 
-  // next test plain name with exts
-  exts.forEach(function (ext) {
+  // next test plain name with fullExts
+  fullExts.forEach(function (ext) {
     relPath = _path2.default.join(base, '' + name + ext);
     absPath = _path2.default.join(rootPath, relPath);
 

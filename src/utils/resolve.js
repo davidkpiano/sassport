@@ -1,4 +1,5 @@
 import find from 'lodash/collection/find';
+import flatten from 'lodash/array/flatten';
 import path from 'path';
 import mkdirp from 'mkdirp';
 import { ncp } from 'ncp';
@@ -24,6 +25,10 @@ function fileExists(filePath) {
 
 export default function resolve(rootPath, filePath) {
   const exts  = ['.scss', '.sass', '.css'];
+  const indexFileNames = ['/index', '/_index'];
+  const fullExts = exts.concat(
+    flatten(exts.map(ext => indexFileNames
+      .map(iExt => iExt + ext))));
 
   let filename = path.join(rootPath, filePath);
   let resolved = [];
@@ -48,7 +53,7 @@ export default function resolve(rootPath, filePath) {
     resolved.push(new SassQueued(relPath, absPath, 0));
   }
 
-  // next test exts plus underscore
+  // next test fullExts plus underscore
   exts.forEach((ext) => {
     relPath = path.join(base, `_${name}${ext}`);
     absPath = path.join(rootPath, relPath);
@@ -58,8 +63,8 @@ export default function resolve(rootPath, filePath) {
     }
   });
 
-  // next test plain name with exts
-  exts.forEach((ext) => {
+  // next test plain name with fullExts
+  fullExts.forEach((ext) => {
     relPath = path.join(base, `${name}${ext}`);
     absPath = path.join(rootPath, relPath);
 
