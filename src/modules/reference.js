@@ -21,7 +21,7 @@ const referenceModule = sassport.module('reference')
 
       transformSelectors(tree);
 
-      return tree.toString();
+      return { contents: tree.toString() };
     }
   });
 

@@ -41,8 +41,8 @@ describe('Sassport loaders', () => {
   it('should handle multiple transformers', (done) => {
     let testModule = sassport.module('testModule')
       .loaders({
-        'foo': (content) => `${content} foo{test:foo}`,
-        'bar': (content) => `${content} bar{test:bar}`,
+        'foo': (contents) => ({ contents: `${contents} foo{test:foo}` }),
+        'bar': (contents) => ({ contents: `${contents} bar{test:bar}` }),
       });
 
     let sassportModule = sassport([ testModule ]);
@@ -61,3 +61,23 @@ describe('Sassport loaders', () => {
     });
   });
 });
+
+describe('Sassport once loader', () => {
+  it('should only load imports once', (done) => {
+    let sassportModule = sassport([ require('../dist/modules/once').default ]);
+
+    sassportModule.render({
+      data: `
+        @import './test/scss/simple !once';
+        @import './test/scss/simple !once';
+      `,
+      outputStyle: 'compressed'
+    }, (err, result) => {
+      console.error(err);
+
+      done(assert.equal(
+        result.css.toString(),
+        'a{b:c}\n'));
+    });
+  });
+})

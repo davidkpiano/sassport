@@ -35,7 +35,7 @@ var referenceModule = _index2.default.module('reference').functions({
 
     transformSelectors(tree);
 
-    return tree.toString();
+    return { contents: tree.toString() };
   }
 });
 

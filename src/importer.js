@@ -78,7 +78,6 @@ export default function createImporter(sassportModule) {
 function transform(queuedResolve, loaderKeys, spModule, done) {
   let loaders = spModule._loaders;
   let missingLoaders = difference(loaderKeys, Object.keys(loaders));
-  let contents = null;
   let importPath = queuedResolve[0].absPath;
 
   if (missingLoaders.length) {
@@ -86,26 +85,35 @@ function transform(queuedResolve, loaderKeys, spModule, done) {
       ${missingLoaders.join(', ')}`);
   } 
 
-  try {
-    contents = fs.readFileSync(importPath, {
-        encoding: 'UTF-8'
-      });
-  } catch(e) {
-    console.log(`WARNING: import path "${importPath}" could not be read.`);
-  }
 
-  function innerDone(contents) {
+  function innerDone(data) {
+    let contents = null;
+
+    console.log(data);
+
     if (!loaderKeys.length) {
-      return done({ contents });
+      return done(data);
+    }
+
+    if (data.file) {    
+      try {
+        contents = fs.readFileSync(data.file, {
+            encoding: 'UTF-8'
+          });
+      } catch(e) {
+        console.log(`WARNING: import path "${importPath}" could not be read.`);
+      }
+    } else if (data.contents) {
+      contents = data.contents;
     }
 
     let loaderKey = loaderKeys.shift();
 
     try {
-      let transformedContents = loaders[loaderKey](contents, queuedResolve, innerDone);
+      let transformedData = loaders[loaderKey](contents, queuedResolve[0], innerDone);
 
-      if (typeof transformedContents !== 'undefined') {
-        innerDone(transformedContents);
+      if (typeof transformedData !== 'undefined') {
+        innerDone(transformedData);
       }
     } catch (err) {
       throw new Error(`The "${loaderKey}" failed when trying to transform this file:
@@ -115,5 +123,5 @@ function transform(queuedResolve, loaderKeys, spModule, done) {
     }
   }
 
-  innerDone(contents);
+  innerDone({ file: importPath });
 }

@@ -122,38 +122,45 @@ function createImporter(sassportModule) {
 function transform(queuedResolve, loaderKeys, spModule, done) {
   var loaders = spModule._loaders;
   var missingLoaders = (0, _difference2.default)(loaderKeys, Object.keys(loaders));
-  var contents = null;
   var importPath = queuedResolve[0].absPath;
 
   if (missingLoaders.length) {
     throw new Error('These loaders are missing:\n      ' + missingLoaders.join(', '));
   }
 
-  try {
-    contents = _fs2.default.readFileSync(importPath, {
-      encoding: 'UTF-8'
-    });
-  } catch (e) {
-    console.log('WARNING: import path "' + importPath + '" could not be read.');
-  }
+  function innerDone(data) {
+    var contents = null;
 
-  function innerDone(contents) {
+    console.log(data);
+
     if (!loaderKeys.length) {
-      return done({ contents: contents });
+      return done(data);
+    }
+
+    if (data.file) {
+      try {
+        contents = _fs2.default.readFileSync(data.file, {
+          encoding: 'UTF-8'
+        });
+      } catch (e) {
+        console.log('WARNING: import path "' + importPath + '" could not be read.');
+      }
+    } else if (data.contents) {
+      contents = data.contents;
     }
 
     var loaderKey = loaderKeys.shift();
 
     try {
-      var transformedContents = loaders[loaderKey](contents, queuedResolve, innerDone);
+      var transformedData = loaders[loaderKey](contents, queuedResolve[0], innerDone);
 
-      if (typeof transformedContents !== 'undefined') {
-        innerDone(transformedContents);
+      if (typeof transformedData !== 'undefined') {
+        innerDone(transformedData);
       }
     } catch (err) {
       throw new Error('The "' + loaderKey + '" failed when trying to transform this file:\n        ' + importPath + '\n\n        ' + err);
     }
   }
 
-  innerDone(contents);
+  innerDone({ file: importPath });
 }
