@@ -13,7 +13,7 @@ JavaScript modules for Sass (node-sass). Easily share assets, and JavaScript fun
 - [gulp-sassport](https://github.com/davidkpiano/gulp-sassport)
 - [sassport-loader](https://github.com/IngwiePhoenix/sassport-loader) for [Webpack](http://webpack.github.io/) (thanks to [@IngwiePhoenix](https://github.com/IngwiePhoenix)!)
 - More to come soon!
-- 
+
 ## Available Modules
 - [Sassport Reference loader](https://github.com/davidkpiano/sassport-reference) - finally, import Sass files by reference!
 - More to come soon!
