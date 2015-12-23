@@ -54,7 +54,11 @@ function createImporter(sassportModule) {
     var queuedResolve = (0, _resolve2.default)(_path2.default.dirname(prev), importUrl);
 
     if (loaderKeys.length) {
-      return transform(queuedResolve, loaderKeys, sassportModule, done);
+      try {
+        return transform(queuedResolve, loaderKeys, sassportModule, done);
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     var _url$split = url.split('/');
@@ -131,8 +135,6 @@ function transform(queuedResolve, loaderKeys, spModule, done) {
   function innerDone(data) {
     var contents = null;
 
-    console.log(data);
-
     if (!loaderKeys.length) {
       return done(data);
     }
@@ -158,9 +160,13 @@ function transform(queuedResolve, loaderKeys, spModule, done) {
         innerDone(transformedData);
       }
     } catch (err) {
-      throw new Error('The "' + loaderKey + '" failed when trying to transform this file:\n        ' + importPath + '\n\n        ' + err);
+      throw new Error('The "' + loaderKey + '" loader failed when trying to transform this file:\n        ' + importPath + '\n\n        ' + err);
     }
   }
 
-  innerDone({ file: importPath });
+  try {
+    innerDone({ file: importPath });
+  } catch (err) {
+    throw err;
+  }
 }

@@ -18,7 +18,11 @@ export default function createImporter(sassportModule) {
     );
 
     if (loaderKeys.length) {
-      return transform(queuedResolve, loaderKeys, sassportModule, done);
+      try {
+        return transform(queuedResolve, loaderKeys, sassportModule, done);
+      } catch (err) {
+        console.error(err);
+      }
     }
 
 
@@ -89,8 +93,6 @@ function transform(queuedResolve, loaderKeys, spModule, done) {
   function innerDone(data) {
     let contents = null;
 
-    console.log(data);
-
     if (!loaderKeys.length) {
       return done(data);
     }
@@ -116,12 +118,16 @@ function transform(queuedResolve, loaderKeys, spModule, done) {
         innerDone(transformedData);
       }
     } catch (err) {
-      throw new Error(`The "${loaderKey}" failed when trying to transform this file:
+      throw new Error(`The "${loaderKey}" loader failed when trying to transform this file:
         ${importPath}
 
         ${err}`);
     }
   }
 
-  innerDone({ file: importPath });
+  try {
+    innerDone({ file: importPath });
+  } catch (err) {
+    throw err;
+  }
 }
