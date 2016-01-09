@@ -60,6 +60,27 @@ describe('Sassport loaders', () => {
         'a{b:c}foo{test:foo}bar{test:bar}\n'));
     });
   });
+
+  it('should contain a reference to the sassportModule context in the loader options', (done) => {
+    let sassportModule = sassport.module('test')
+      .loaders({
+        'foo': (contents, options) => {
+          done(assert.equal(sassportModule, options.context));
+
+          return {
+            contents: `test { test: ${options.context.name} }`
+          }
+        }
+      });
+
+    sassportModule.render({
+      data: '@import "test !foo";',
+      outputStyle: 'compressed'
+    }, (err, result) => {
+      console.error(err);
+      console.log(result.css.toString());
+    });
+  });
 });
 
 describe('Sassport once loader', () => {

@@ -112,7 +112,12 @@ function transform(queuedResolve, loaderKeys, spModule, done) {
     let loaderKey = loaderKeys.shift();
 
     try {
-      let transformedData = loaders[loaderKey](contents, queuedResolve[0], innerDone);
+      let loaderOptions = {
+        ...queuedResolve[0],
+        context: spModule
+      };
+
+      let transformedData = loaders[loaderKey](contents, loaderOptions, innerDone);
 
       if (typeof transformedData !== 'undefined') {
         innerDone(transformedData);
