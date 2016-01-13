@@ -203,7 +203,7 @@ class Sassport {
     return this._localAssetPath;
   }
 
-  variables(variableMap) {
+  globals(variableMap) {
     for (let key in variableMap) {
       let value = variableMap[key];
       let sassValue = utils.sassString(utils.castToSass(value));
@@ -212,6 +212,12 @@ class Sassport {
     }
 
     return this;
+  }
+
+  variables(variableMap) {
+    console.log('WARNING: sassport.module().variables is deprecated. Please use sassport.module().globals instead.');
+
+    return this.globals(variableMap);
   }
 
   assets(localPath, remotePath = null) {

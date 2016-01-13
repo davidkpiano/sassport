@@ -1,6 +1,6 @@
 'use strict';
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _nodeSass = require('node-sass');
 
@@ -81,7 +81,7 @@ sassport.module = function (name) {
 sassport.wrap = _wrap2.default;
 sassport.wrapAll = _wrapAll2.default;
 
-var Sassport = (function () {
+var Sassport = function () {
   /**
    * Constructor for Sassport instance/module.
    * @param  {String} name     name of Sassport module.
@@ -251,8 +251,8 @@ var Sassport = (function () {
       return this._localAssetPath;
     }
   }, {
-    key: 'variables',
-    value: function variables(variableMap) {
+    key: 'globals',
+    value: function globals(variableMap) {
       for (var key in variableMap) {
         var value = variableMap[key];
         var sassValue = _utils2.default.sassString(_utils2.default.castToSass(value));
@@ -261,6 +261,13 @@ var Sassport = (function () {
       }
 
       return this;
+    }
+  }, {
+    key: 'variables',
+    value: function variables(variableMap) {
+      console.log('WARNING: sassport.module().variables is deprecated. Please use sassport.module().globals instead.');
+
+      return this.globals(variableMap);
     }
   }, {
     key: 'assets',
@@ -288,6 +295,6 @@ var Sassport = (function () {
   }]);
 
   return Sassport;
-})();
+}();
 
 module.exports = sassport;

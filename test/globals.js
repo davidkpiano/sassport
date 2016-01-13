@@ -6,12 +6,12 @@ import sassport from '../dist/index.js';
 
 var assertRenderSync = require('./util/assertRenderSync.js');
 
-describe('Sassport.variables', function() {
+describe('Sassport.globals', function() {
 
   describe('standard JS values', function() {
     var testModule = sassport.module('test');
 
-    testModule.variables({
+    testModule.globals({
       '$string': 'foobar',
       '$number': 123.456,
       '$list': ['a', 'b', 'c'],
@@ -28,12 +28,26 @@ describe('Sassport.variables', function() {
     });
   });
 
+  describe('variables deprecation', function() {
+    var testModule = sassport.module('test');
+
+    testModule.variables({
+      '$string': 'foobar'
+    });
+
+    it('should still work with legacy .variables()', function(done) {    
+      assertRenderSync(
+        sassport([testModule]),
+        '@import "test"; test { string: inspect($string); }',
+        'test{string:foobar}\n',
+        done);
+    });
+  });
+
   describe('standard JS value types', function() {
     var testModule = sassport.module('test');
 
-    console.log(testModule._localPath);
-
-    testModule.variables({
+    testModule.globals({
       '$string': 'foobar',
       '$number': 123.456,
       '$list': ['a', 'b', 'c'],
@@ -66,7 +80,7 @@ describe('Sassport.variables', function() {
     sassMap.setValue(1, sass.types.String('two'));
     sassMap.setValue(2, sass.types.String('three'));
 
-    testModule.variables({
+    testModule.globals({
       '$string': sass.types.String('foobar'),
       '$number': sass.types.Number(123.456),
       '$number-unit': sass.types.Number(123.456, 'px'),
