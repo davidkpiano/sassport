@@ -99,4 +99,23 @@ describe('Sassport.globals', function() {
         done);
     });
   });
+
+  describe('global() Sass function', () => {
+    let testModule = sassport()
+      .globals({
+        '$foo': 'foo value',
+        '$bar': 'bar value'
+      });
+
+    it('should retrieve the proper global variables from the root module', (done) => {
+      testModule.render({
+        data: 'test { foo: global("$foo"); }',
+        outputStyle: 'compressed'
+      }, (err, result) => {
+        done(assert.equal(
+          result.css.toString(),
+          'test{foo:foo value}\n'));
+      });
+    });
+  });
 });

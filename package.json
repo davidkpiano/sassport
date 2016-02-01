@@ -5,7 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "babel -w ./src -d ./dist",
-    "test": "mocha -w --require babel-core/register"
+    "build": "babel ./src -d ./dist",
+    "test": "npm run build && mocha --require babel-core/register",
+    "test:watch": "mocha -w --require babel-core/register"
   },
   "repository": {
     "type": "git",

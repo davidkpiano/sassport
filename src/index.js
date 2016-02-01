@@ -76,8 +76,8 @@ class Sassport {
     };
 
     this._exports = {};
-
     this._loaders = {};
+    this._variables = {};
 
     this._localPath = path.resolve('./');
     this._localAssetPath = null;
@@ -124,7 +124,8 @@ class Sassport {
           return utils.toSass(data, {
             infer: utils.castToJs(infer)
           });
-        }
+        },
+        'global($variable)': wrap((variable) => this._variables[variable])
       },
       importer: this._importer,
       includePaths: ['node_modules'],
@@ -204,6 +205,8 @@ class Sassport {
   }
 
   globals(variableMap) {
+    this._variables = variableMap;
+
     for (let key in variableMap) {
       let value = variableMap[key];
       let sassValue = utils.sassString(utils.castToSass(value));

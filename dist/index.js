@@ -91,7 +91,8 @@ var Sassport = function () {
    */
 
   function Sassport(name) {
-    var _this = this;
+    var _this = this,
+        _functions;
 
     var modules = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
     var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
@@ -121,8 +122,8 @@ var Sassport = function () {
     };
 
     this._exports = {};
-
     this._loaders = {};
+    this._variables = {};
 
     this._localPath = _path2.default.resolve('./');
     this._localAssetPath = null;
@@ -131,7 +132,7 @@ var Sassport = function () {
     this._onRequire = options.onRequire.bind(this);
 
     this.options = {
-      functions: _defineProperty({
+      functions: (_functions = {
         'resolve-path($source, $module: null)': function resolvePath$source$moduleNull(source, module) {
           var modulePath = _utils2.default.isNull(module) ? '' : module.getValue();
           var assetPath = source.getValue();
@@ -152,7 +153,7 @@ var Sassport = function () {
 
           return _nodeSass2.default.types.String(assetUrl);
         }
-      }, 'require($path, $propPath: null, $infer: ' + options.infer + ')', function undefined(file, propPath, infer, done) {
+      }, _defineProperty(_functions, 'require($path, $propPath: null, $infer: ' + options.infer + ')', function undefined(file, propPath, infer, done) {
         file = file.getValue();
         propPath = _utils2.default.isNull(propPath) ? false : propPath.getValue();
 
@@ -165,7 +166,9 @@ var Sassport = function () {
         return _utils2.default.toSass(data, {
           infer: _utils2.default.castToJs(infer)
         });
-      }),
+      }), _defineProperty(_functions, 'global($variable)', (0, _wrap2.default)(function (variable) {
+        return _this._variables[variable];
+      })), _functions),
       importer: this._importer,
       includePaths: ['node_modules'],
       sassportModules: modules // carried over to node-sass
@@ -253,6 +256,8 @@ var Sassport = function () {
   }, {
     key: 'globals',
     value: function globals(variableMap) {
+      this._variables = variableMap;
+
       for (var key in variableMap) {
         var value = variableMap[key];
         var sassValue = _utils2.default.sassString(_utils2.default.castToSass(value));
