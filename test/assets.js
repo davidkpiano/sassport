@@ -8,9 +8,6 @@ var rimraf = require('rimraf');
 import sassport from '../dist/index.js';
 var assertRenderSync = require('./util/assertRenderSync.js');
 
-console.log(sassport.module);
-
-
 describe('Sassport.assets', function() {
   var localAssetPath = path.join(__dirname, 'assets-test');
   var moduleAssetPath = path.join(__dirname, 'module-assets');
