@@ -61,11 +61,12 @@ describe('Sassport.module', () => {
       let sassportModule = sassport();
 
       sassportModule.render({
-        data: '@import "included-path";',
-        includePaths: ['test/scss'],
+        data: '@import "included-path"; @import "scss/deeper-included-path";',
+        includePaths: ['test/scss/', 'test/fixtures/'],
         outputStyle: 'compressed'
       }, (err, result) => {
-        assert.equal(result.css.toString(), 'test.included{foo:bar}\n');
+        err && console.log(err);
+        assert.equal(result.css.toString(), 'test.included{foo:bar}test.deeper-included{foo:bar}\n');
         done();
       });
     });
